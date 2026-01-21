@@ -1,6 +1,7 @@
 import React from 'react';
 import './App.css';
 import Login from './components/login.jsx';
+import Register from './components/register.jsx';
 import NavBar from './components/navBar.jsx';
 import partyImage from './images/party.jpg';
 import weddingImge from './images/weddingimg.jpg';
@@ -19,12 +20,32 @@ function App() {
     setCurrentPage('login');
   };
 
+  const handleRegisterClick = () => {
+    setCurrentPage('register');
+  };
+
   const handleLoginClose = () => {
     setCurrentPage('home');
   };
 
+  const handleRegisterClose = () => {
+    setCurrentPage('home');
+  };
+
+  const handleSwitchToLogin = () => {
+    setCurrentPage('login');
+  };
+
+  const handleSwitchToRegister = () => {
+    setCurrentPage('register');
+  };
+
   if (currentPage === 'login') {
-    return <Login onClose={handleLoginClose} />;
+    return <Login onClose={handleLoginClose} onSwitchToRegister={handleSwitchToRegister} />;
+  }
+
+  if (currentPage === 'register') {
+    return <Register onClose={handleRegisterClose} onSwitchToLogin={handleSwitchToLogin} />;
   }
 
   return (

@@ -2,7 +2,7 @@ import partyImage from '../images/party.jpg';
 import './login.css';
 import NavBar from './navBar.jsx';
 
-const Login = ({ onClose }) => {
+const Login = ({ onClose, onSwitchToRegister }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = {
@@ -84,7 +84,7 @@ const Login = ({ onClose }) => {
 
             <div className="login-footer">
               <p className="login-register-text">
-                Don't have an account? <a href="#" className="login-register-link">Register</a>
+                Don't have an account? <a href="#" onClick={(e) => { e.preventDefault(); onSwitchToRegister(); }} className="login-register-link">Register</a>
               </p>
             </div>
           </form>
