@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import React from 'react';
 import './App.css';
+import Login from './components/login.jsx';
 import partyImage from './images/party.jpg';
 import weddingImge from './images/weddingimg.jpg';
 import musiconcertImage from './images/mconcert.jpg';
@@ -11,6 +12,16 @@ import youtubeLogo from './images/logos/icons8-youtube-logo-48.png';
 import linkedinLogo from './images/logos/icons8-linkedin-logo-48.png';
 
 function App() {
+  const [currentPage, setCurrentPage] = React.useState('home');
+
+  const handleLoginClick = () => {
+    setCurrentPage('login');
+  };
+
+  const handleLoginClose = () => {
+    setCurrentPage('home');
+  };
+
   const updateActiveNav = () => {
     const navItems = document.querySelectorAll('.navbar-item');
     const sections = document.querySelectorAll('section[id]');
@@ -47,6 +58,10 @@ function App() {
     window.addEventListener('scroll', updateActiveNav);
   }
 
+  if (currentPage === 'login') {
+    return <Login onClose={handleLoginClose} />;
+  }
+
   return (
     <>
       <div className="App">
@@ -77,7 +92,7 @@ function App() {
             </ul>
 
             <div className="navbar-actions">
-              <button className="navbar-login-btn">Login</button>
+              <button className="navbar-login-btn" onClick={handleLoginClick}>Login</button>
             </div>
           </div>
         </nav>
