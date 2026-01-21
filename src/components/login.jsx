@@ -1,5 +1,6 @@
 import partyImage from '../images/party.jpg';
 import './login.css';
+import NavBar from './navBar.jsx';
 
 const Login = ({ onClose }) => {
   const handleSubmit = (e) => {
@@ -13,18 +14,18 @@ const Login = ({ onClose }) => {
     onClose();
   };
 
-  const handleNavClick = (e) => {
-    const href = e.currentTarget.getAttribute('href');
-    if (href && href.startsWith('#')) {
-      // Navigate back to home page first, then scroll to section
-      onClose();
-      setTimeout(() => {
-        const element = document.querySelector(href);
+  const handleNavClick = (targetSection) => {
+    // Close the login page first
+    onClose();
+    // Then navigate to the section after a brief delay
+    setTimeout(() => {
+      if (targetSection && targetSection !== '#home') {
+        const element = document.querySelector(targetSection);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth' });
         }
-      }, 100);
-    }
+      }
+    }, 100);
   };
 
   return (
@@ -32,37 +33,12 @@ const Login = ({ onClose }) => {
       <div className="login-background" style={{backgroundImage: `url(${partyImage})`}}></div>
       <div className="login-overlay-blur"></div>
       
-      <nav className="navbar login-navbar">
-        <div className="navbar-container">
-          <div className="navbar-logo">
-            <span className="logo-be">asas</span>
-            <span className="logo-x">×</span>
-            <span className="logo-event">event</span>
-          </div>
-          
-          <ul className="navbar-menu">
-            <li className="navbar-item">
-              <a href="#home" onClick={handleNavClick}>Home</a>
-            </li>
-            <li className="navbar-item">
-              <a href="#events" onClick={handleNavClick}>Events</a>
-            </li>
-            <li className="navbar-item">
-              <a href="#services" onClick={handleNavClick}>Services</a>
-            </li>
-            <li className="navbar-item">
-              <a href="#about" onClick={handleNavClick}>About us</a>
-            </li>
-            <li className="navbar-item">
-              <a href="#contact" onClick={handleNavClick}>Contact</a>
-            </li>
-          </ul>
-
-          <div className="navbar-actions">
-            <button className="navbar-login-btn active">Login</button>
-          </div>
-        </div>
-      </nav>
+      <div className="login-navbar-wrapper">
+        <NavBar 
+          onLoginClick={() => {}} 
+          onNavClick={handleNavClick}
+        />
+      </div>
       
       <div className="login-container">        
         <div className="login-card">

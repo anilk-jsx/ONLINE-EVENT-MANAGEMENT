@@ -18,105 +18,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Navbar Styles */
-.navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  padding: 1.5rem 0;
-  z-index: 1000;
-  background: transparent;
-}
 
-.navbar-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.navbar-logo {
-  font-size: 1.5rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
-}
-
-.logo-be {
-  color: #fff;
-}
-
-.logo-x {
-  color: #ff4d6d;
-  font-size: 1.8rem;
-}
-
-.logo-event {
-  color: #fff;
-}
-
-.navbar-menu {
-  display: flex;
-  list-style: none;
-  gap: 2.5rem;
-  margin: 0;
-  padding: 0;
-}
-
-.navbar-item a {
-  color: #fff;
-  text-decoration: none;
-  font-size: 0.95rem;
-  font-weight: 500;
-  transition: color 0.3s ease;
-  position: relative;
-}
-
-.navbar-item.active a {
-  color: #ff4d6d;
-}
-
-.navbar-item.active a::after {
-  content: '';
-  position: absolute;
-  bottom: -5px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: #ff4d6d;
-}
-
-.navbar-item a:hover {
-  color: #ff4d6d;
-}
-
-.navbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.navbar-login-btn {
-  background: transparent;
-  color: #fff;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  padding: 0.6rem 1.6rem;
-  border-radius: 25px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.navbar-login-btn:hover {
-  border-color: #fff;
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateY(-2px);
-}
 
 /* Hero Section Styles */
 .hero-section {
@@ -376,14 +278,6 @@ body {
 
 /* Tablets and smaller laptops */
 @media (max-width: 1024px) {
-  .navbar-container {
-    padding: 0 1.5rem;
-  }
-
-  .navbar-menu {
-    gap: 1.8rem;
-  }
-
   .hero-section {
     padding-top: 80px;
   }
@@ -426,36 +320,6 @@ body {
 
 /* Mobile devices */
 @media (max-width: 768px) {
-  .navbar {
-    padding: 1rem 0;
-  }
-
-  .navbar-container {
-    padding: 0 1rem;
-  }
-
-  .navbar-logo {
-    font-size: 1.3rem;
-  }
-
-  .logo-x {
-    font-size: 1.5rem;
-  }
-
-  .navbar-menu {
-    display: none;
-  }
-
-  .navbar-actions {
-    gap: 0.8rem;
-  }
-
-  .navbar-login-btn {
-    padding: 0.55rem 1.4rem;
-    font-size: 0.9rem;
-  }
-
-
   .hero-section {
     padding-top: 70px;
   }
@@ -753,23 +617,6 @@ body {
 
 
 @media (max-width: 480px) {
-  .navbar-logo {
-    font-size: 1.2rem;
-  }
-
-  .logo-x {
-    font-size: 1.4rem;
-  }
-
-  .navbar-actions {
-    gap: 0.6rem;
-  }
-
-  .navbar-login-btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
-  }
-
   .hero-container {
     padding: 1.5rem 1rem;
   }

@@ -1,6 +1,7 @@
 import React from 'react';
 import './App.css';
 import Login from './components/login.jsx';
+import NavBar from './components/navBar.jsx';
 import partyImage from './images/party.jpg';
 import weddingImge from './images/weddingimg.jpg';
 import musiconcertImage from './images/mconcert.jpg';
@@ -22,42 +23,6 @@ function App() {
     setCurrentPage('home');
   };
 
-  const updateActiveNav = () => {
-    const navItems = document.querySelectorAll('.navbar-item');
-    const sections = document.querySelectorAll('section[id]');
-    const scrollPosition = window.scrollY + 150;
-
-    navItems.forEach(item => item.classList.remove('active'));
-
-    let currentActive = 'home';
-    sections.forEach(section => {
-      const sectionTop = section.offsetTop;
-      const sectionHeight = section.clientHeight;
-      if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
-        currentActive = section.getAttribute('id');
-      }
-    });
-
-    const activeItem = document.querySelector(`a[href="#${currentActive}"]`)?.parentElement;
-    if (activeItem) {
-      activeItem.classList.add('active');
-    }
-  };
-
-  const handleNavClick = (e) => {
-    const href = e.currentTarget.getAttribute('href');
-    if (href && href.startsWith('#')) {
-      document.querySelectorAll('.navbar-item').forEach(item => {
-        item.classList.remove('active');
-      });
-      e.currentTarget.parentElement.classList.add('active');
-    }
-  };
-
-  if (typeof window !== 'undefined') {
-    window.addEventListener('scroll', updateActiveNav);
-  }
-
   if (currentPage === 'login') {
     return <Login onClose={handleLoginClose} />;
   }
@@ -65,37 +30,7 @@ function App() {
   return (
     <>
       <div className="App">
-        <nav className="navbar">
-          <div className="navbar-container">
-            <div className="navbar-logo">
-              <span className="logo-be">asas</span>
-              <span className="logo-x">×</span>
-              <span className="logo-event">event</span>
-            </div>
-            
-            <ul className="navbar-menu">
-              <li className="navbar-item active">
-                <a href="#home" onClick={handleNavClick}>Home</a>
-              </li>
-              <li className="navbar-item">
-                <a href="#events" onClick={handleNavClick}>Events</a>
-              </li>
-              <li className="navbar-item">
-                <a href="#services" onClick={handleNavClick}>Services</a>
-              </li>
-              <li className="navbar-item">
-                <a href="#about" onClick={handleNavClick}>About us</a>
-              </li>
-              <li className="navbar-item">
-                <a href="#contact" onClick={handleNavClick}>Contact</a>
-              </li>
-            </ul>
-
-            <div className="navbar-actions">
-              <button className="navbar-login-btn" onClick={handleLoginClick}>Login</button>
-            </div>
-          </div>
-        </nav>
+        <NavBar onLoginClick={handleLoginClick} />
 
         <section className="hero-section" id="home">
           <div className="hero-decorations">
