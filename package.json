@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://<username>.github.io/online-event-management/",
+  "homepage": "https://anilk-jsx.github.io/ONLINE-EVENT-MANAGEMENT/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
