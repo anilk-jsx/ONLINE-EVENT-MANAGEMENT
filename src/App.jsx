@@ -12,10 +12,12 @@ import twitterLogo from './images/logos/icons8-x-logo-50.png';
 import instagramLogo from './images/logos/icons8-instagram-logo-94.png';
 import youtubeLogo from './images/logos/icons8-youtube-logo-48.png';
 import linkedinLogo from './images/logos/icons8-linkedin-logo-48.png';
+import Dashboard from './components/dashboard.jsx';
 
 function App() {
   const [currentPage, setCurrentPage] = React.useState('home');
-
+  const [userData, setUserData] = React.useState(null);
+  
   const handleLoginClick = () => {
     setCurrentPage('login');
   };
@@ -40,12 +42,21 @@ function App() {
     setCurrentPage('register');
   };
 
+  const handleSwitchToDashboard = (formData) => {
+    setUserData(formData);
+    setCurrentPage('dashboard');
+  }
+
   if (currentPage === 'login') {
-    return <Login onClose={handleLoginClose} onSwitchToRegister={handleSwitchToRegister} />;
+    return <Login onClose={handleLoginClose} onSwitchToRegister={handleSwitchToRegister} onSwitchToDashboard={handleSwitchToDashboard} />;
   }
 
   if (currentPage === 'register') {
     return <Register onClose={handleRegisterClose} onSwitchToLogin={handleSwitchToLogin} />;
+  }
+
+  if (currentPage === 'dashboard') {
+    return <Dashboard data={userData} />;
   }
 
   return (

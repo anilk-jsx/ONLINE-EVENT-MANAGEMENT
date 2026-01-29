@@ -2,7 +2,18 @@ import partyImage from '../images/party.jpg';
 import './login.css';
 import NavBar from './navBar.jsx';
 
-const Login = ({ onClose, onSwitchToRegister }) => {
+const email = "anil@gmail.com";
+const pwd = "anil@123";
+
+// const switchToDashboard = (formData) =>{
+//   return(
+//     <>
+//       <DashBoard data = {formData}/>
+//     </>
+//   )
+// }
+
+const Login = ({ onClose, onSwitchToRegister, onSwitchToDashboard }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = {
@@ -11,7 +22,15 @@ const Login = ({ onClose, onSwitchToRegister }) => {
     };
     console.log('Login attempt:', formData);
     // Close modal after successful login
-    onClose();
+    // onClose();
+
+    if(formData.email === email && formData.password === pwd){
+      alert("login successful");
+      onSwitchToDashboard(formData);
+    }
+    else{
+      alert("Invalid Credentials");
+    }
   };
 
   const handleNavClick = (targetSection) => {
