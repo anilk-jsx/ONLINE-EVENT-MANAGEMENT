@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import './navBar.css';
 
 const NavBar = ({ onLoginClick, onNavClick }) => {
@@ -77,7 +78,7 @@ const NavBar = ({ onLoginClick, onNavClick }) => {
         </ul>
 
         <div className="navbar-actions">
-          <button className="navbar-login-btn" onClick={onLoginClick}>Login</button>
+          <Link to="/login" className="navbar-login-btn">Login</Link>
         </div>
       </div>
     </nav>

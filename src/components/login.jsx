@@ -1,9 +1,15 @@
+import React from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import partyImage from '../images/party.jpg';
 import './login.css';
 import NavBar from './navBar.jsx';
 
 const email = "anil@gmail.com";
-const pwd = "anil@123";
+const pwd = "Anil@123";
+
+// Regular expressions for validation
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
 // const switchToDashboard = (formData) =>{
 //   return(
@@ -13,29 +19,104 @@ const pwd = "anil@123";
 //   )
 // }
 
-const Login = ({ onClose, onSwitchToRegister, onSwitchToDashboard }) => {
+const Login = ({ setUserData }) => {
+  const navigate = useNavigate();
+  
+  // Validate email using regex
+  const validateEmail = (email) => {
+    if (!email) {
+      return 'Email is required';
+    }
+    if (!EMAIL_REGEX.test(email)) {
+      return 'Please enter a valid email address';
+    }
+    return '';
+  };
+
+  // Validate password using regex
+  const validatePassword = (password) => {
+    if (!password) {
+      return 'Password is required';
+    }
+    if (!PASSWORD_REGEX.test(password)) {
+      return 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character';
+    }
+    return '';
+  };
+
+  // Show validation error
+  const showError = (inputElement, message) => {
+    // Remove existing error
+    const existingError = inputElement.parentElement.parentElement.querySelector('.validation-error');
+    if (existingError) {
+      existingError.remove();
+    }
+
+    if (message) {
+      // Add error class to input
+      inputElement.classList.add('error');
+      
+      // Create and add error message
+      const errorSpan = document.createElement('span');
+      errorSpan.className = 'validation-error';
+      errorSpan.textContent = message;
+      inputElement.parentElement.parentElement.appendChild(errorSpan);
+    } else {
+      // Remove error class
+      inputElement.classList.remove('error');
+    }
+  };
+
+  // Handle input validation on blur and input
+  const handleInputValidation = (e) => {
+    const { name, value } = e.target;
+    let errorMessage = '';
+    
+    if (name === 'email') {
+      errorMessage = validateEmail(value);
+    } else if (name === 'password') {
+      errorMessage = validatePassword(value);
+    }
+    
+    showError(e.target, errorMessage);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    
     const formData = {
       email: e.target.email.value,
       password: e.target.password.value
     };
+    
+    // Validate all fields before submission
+    const emailError = validateEmail(formData.email);
+    const passwordError = validatePassword(formData.password);
+    
+    // Show validation errors
+    showError(e.target.email, emailError);
+    showError(e.target.password, passwordError);
+
+    // If there are validation errors, don't proceed
+    if (emailError || passwordError) {
+      alert('Please fix validation errors before submitting');
+      return;
+    }
+
     console.log('Login attempt:', formData);
-    // Close modal after successful login
-    // onClose();
 
     if(formData.email === email && formData.password === pwd){
-      alert("login successful");
-      onSwitchToDashboard(formData);
-    }
-    else{
+      alert("Login successful");
+      setUserData(formData);
+      navigate('/dashboard');
+    } else {
       alert("Invalid Credentials");
     }
   };
 
   const handleNavClick = (targetSection) => {
-    // Close the login page first
-    onClose();
+    // Navigate to home page first
+    navigate('/');
     // Then navigate to the section after a brief delay
     setTimeout(() => {
       if (targetSection && targetSection !== '#home') {
@@ -75,6 +156,8 @@ const Login = ({ onClose, onSwitchToRegister, onSwitchToDashboard }) => {
                   placeholder="Email"
                   required
                   className="login-input"
+                  onBlur={handleInputValidation}
+                  onInput={handleInputValidation}
                 />
                 <span className="login-input-icon">📧</span>
               </div>
@@ -88,6 +171,8 @@ const Login = ({ onClose, onSwitchToRegister, onSwitchToDashboard }) => {
                   placeholder="Password"
                   required
                   className="login-input"
+                  onBlur={handleInputValidation}
+                  onInput={handleInputValidation}
                 />
                 <span className="login-input-icon">🔒</span>
               </div>
@@ -103,7 +188,7 @@ const Login = ({ onClose, onSwitchToRegister, onSwitchToDashboard }) => {
 
             <div className="login-footer">
               <p className="login-register-text">
-                Don't have an account? <a href="#" onClick={(e) => { e.preventDefault(); onSwitchToRegister(); }} className="login-register-link">Register</a>
+                Don't have an account? <Link to="/register" className="login-register-link">Register</Link>
               </p>
             </div>
           </form>
