@@ -106,7 +106,6 @@ const Login = ({ setUserData }) => {
     console.log('Login attempt:', formData);
 
     if(formData.email === email && formData.password === pwd){
-      alert("Login successful");
       setUserData(formData);
       navigate('/dashboard');
     } else {

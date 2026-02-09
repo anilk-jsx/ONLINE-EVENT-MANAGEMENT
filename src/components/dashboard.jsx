@@ -7,8 +7,14 @@ import BookEvents from './BookEvents.jsx';
 
 function Dashboard() {
     const [showBookingForm, setShowBookingForm] = useState(false);
-    const [registeredEventIds, setRegisteredEventIds] = useState([1, 5]); // IDs of events user is registered for
-    
+    const [registeredEventIds, setRegisteredEventIds] = useState([1, 5]);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    const handleLogout = () => {
+        // For now, just reload or redirect to login
+        window.location.href = '/';
+    };
+
     const [userProfile] = useState({
         name: 'Anil Kumar Nayak',
         email: 'anil@gmail.com',
@@ -96,7 +102,7 @@ function Dashboard() {
         }
     ]);
 
-    const [bookedEvents] = useState([
+    const [bookedEvents, setBookedEvents] = useState([
         {
             id: 1,
             bookingId: 'BK001',
@@ -144,15 +150,23 @@ function Dashboard() {
         specialRequirements: ''
     });
 
-    const formatDate = (dateString) => {
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        return new Date(dateString).toLocaleDateString(undefined, options);
-    };
-
     const handleNewBookingSubmit = (e) => {
         e.preventDefault();
-        // Handle form submission logic here
-        console.log('New booking:', newBooking);
+        // Add new booking to bookedEvents with Pending status
+        const newId = bookedEvents.length > 0 ? Math.max(...bookedEvents.map(ev => ev.id)) + 1 : 1;
+        const newBookingObj = {
+            id: newId,
+            bookingId: `BK${String(newId).padStart(3, '0')}`,
+            title: newBooking.eventTitle,
+            date: newBooking.eventDate,
+            time: newBooking.eventTime,
+            location: newBooking.eventLocation,
+            tickets: newBooking.tickets,
+            totalAmount: 0, // You can calculate price if needed
+            bookingDate: new Date().toISOString().split('T')[0],
+            status: 'Pending'
+        };
+        setBookedEvents(prev => [...prev, newBookingObj]);
         setShowBookingForm(false);
         setNewBooking({
             eventTitle: '',
@@ -167,7 +181,6 @@ function Dashboard() {
     const handleRegisterEvent = (eventId) => {
         if (!registeredEventIds.includes(eventId)) {
             setRegisteredEventIds([...registeredEventIds, eventId]);
-            // Here you would typically make an API call to register for the event
             console.log(`Registered for event ${eventId}`);
         }
     };
@@ -175,9 +188,8 @@ function Dashboard() {
     // Sidebar component with routing
     const SidebarWithRouter = () => {
         const location = useLocation();
-        
         return (
-            <div className="sidebar">
+            <div className={`sidebar${sidebarOpen ? ' open' : ''}`}>
                 <div className="sidebar-header">
                     <h2>ASAS EVENTS</h2>
                 </div>
@@ -185,6 +197,7 @@ function Dashboard() {
                     <Link 
                         to="/dashboard"
                         className={location.pathname === '/dashboard' ? 'nav-item active' : 'nav-item'}
+                        onClick={() => setSidebarOpen(false)}
                     >
                         <span className="nav-icon">🏠</span>
                         Dashboard
@@ -192,6 +205,7 @@ function Dashboard() {
                     <Link 
                         to="/dashboard/upcoming"
                         className={location.pathname === '/dashboard/upcoming' ? 'nav-item active' : 'nav-item'}
+                        onClick={() => setSidebarOpen(false)}
                     >
                         <span className="nav-icon">📅</span>
                         Upcoming Events
@@ -199,22 +213,30 @@ function Dashboard() {
                     <Link 
                         to="/dashboard/book"
                         className={location.pathname === '/dashboard/book' ? 'nav-item active' : 'nav-item'}
+                        onClick={() => setSidebarOpen(false)}
                     >
                         <span className="nav-icon">🎫</span>
                         Book Events
                     </Link>
                 </nav>
+                <button className="logout-btn" onClick={handleLogout}>
+                    <span className="nav-icon">🚪</span> Logout
+                </button>
             </div>
         );
     };
 
     return (
         <div className="dashboard-container">
+            {/* Sidebar toggle for mobile */}
+            <button className="sidebar-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
+                <span>☰</span>
+            </button>
             {/* Sidebar */}
             <SidebarWithRouter />
 
             {/* Main Content */}
-            <div className="main-content">
+            <div className="main-content" onClick={() => sidebarOpen && setSidebarOpen(false)}>
                 <Routes>
                     <Route 
                         path="/" 
