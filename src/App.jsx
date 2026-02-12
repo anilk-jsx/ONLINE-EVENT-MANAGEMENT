@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import './App.css';
 import Login from './components/login.jsx';
 import Register from './components/register.jsx';
+import ForgotPassword from './components/forgotPassword.jsx';
 import NavBar from './components/navBar.jsx';
 import partyImage from './images/party.jpg';
 import weddingImge from './images/weddingimg.jpg';
@@ -17,11 +18,26 @@ import Dashboard from './components/dashboard.jsx';
 
 function App() {
   const [userData, setUserData] = React.useState(null);
+  // Store credentials locally (default user)
+  const [credentials, setCredentials] = React.useState({
+    email: 'anil@gmail.com',
+    password: 'Anil@123',
+  });
+
+  // Function to update password for a given email
+  const updatePassword = (email, newPassword) => {
+    if (email === credentials.email) {
+      setCredentials(prev => ({ ...prev, password: newPassword }));
+      return true;
+    }
+    return false;
+  };
 
   return (
     <Routes>
-      <Route path="/login" element={<Login setUserData={setUserData} />} />
+      <Route path="/login" element={<Login setUserData={setUserData} credentials={credentials} />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword credentials={credentials} updatePassword={updatePassword} />} />
       <Route path="/dashboard/*" element={<Dashboard data={userData} />} />
       <Route path="/" element={
         <>

@@ -4,8 +4,7 @@ import partyImage from '../images/party.jpg';
 import './login.css';
 import NavBar from './navBar.jsx';
 
-const email = "anil@gmail.com";
-const pwd = "Anil@123";
+
 
 // Regular expressions for validation
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -19,7 +18,7 @@ const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@
 //   )
 // }
 
-const Login = ({ setUserData }) => {
+const Login = ({ setUserData, credentials }) => {
   const navigate = useNavigate();
   
   // Validate email using regex
@@ -105,7 +104,7 @@ const Login = ({ setUserData }) => {
 
     console.log('Login attempt:', formData);
 
-    if(formData.email === email && formData.password === pwd){
+    if(formData.email === credentials.email && formData.password === credentials.password){
       setUserData(formData);
       navigate('/dashboard');
     } else {
@@ -182,7 +181,7 @@ const Login = ({ setUserData }) => {
             </button>
 
             <div className="login-options">
-              <a href="#" className="login-forgot-link">Forgot Password?</a>
+              <Link to="/forgot-password" className="login-forgot-link">Forgot Password?</Link>
             </div>
 
             <div className="login-footer">
