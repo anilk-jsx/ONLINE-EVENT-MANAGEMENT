@@ -301,3 +301,59 @@
   border-color: #ff6b6b !important;
   box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2) !important;
 }
+
+.login-input-wrapper {
+  position: relative;
+}
+
+.login-input {
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
+.login-input-icon-left {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Right Eye Icon Premium Style */
+.eye-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%) scale(1);
+  cursor: pointer;
+  color: #c5c3ff;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  opacity: 0.85;
+}
+
+/* Hover Glow */
+.eye-icon:hover {
+  color: #ffffff;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+  transform: translateY(-50%) scale(1.15);
+  opacity: 1;
+}
+
+/* Active Click Animation */
+.eye-icon.active {
+  color: #ff6b9d;
+  animation: eyePop 0.3s ease;
+}
+
+/* Pop animation */
+@keyframes eyePop {
+  0% {
+    transform: translateY(-50%) scale(0.8);
+  }
+  50% {
+    transform: translateY(-50%) scale(1.3);
+  }
+  100% {
+    transform: translateY(-50%) scale(1);
+  }
+}
