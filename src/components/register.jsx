@@ -10,24 +10,17 @@ const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const MOBILE_REGEX = /^[6-9]\d{9}$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-const [formData, setFormData] = React.useState({
-  name: '',
-  email: '',
-  mobile: '',
-  password: '',
-  retypePassword: ''
-});
-
-const handleInputChange = (e) => {
-  const { name, value } = e.target;
-  setFormData(prevData => ({
-    ...prevData,
-    [name]: value
-  }));
-};
-
 const Register = () => {
   const navigate = useNavigate();
+  const [formData, setFormData] = React.useState({
+    name: '',
+    email: '',
+    mobile: '',
+    password: '',
+    retypePassword: ''
+  });
+  const [errors, setErrors] = React.useState({});
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   
   // Validate name using regex
   const validateName = (name) => {
@@ -84,97 +77,108 @@ const Register = () => {
     return '';
   };
 
-  // Show validation error
-  const showError = (inputElement, message) => {
-    // Remove existing error
-    const existingError = inputElement.parentElement.parentElement.querySelector('.validation-error');
-    if (existingError) {
-      existingError.remove();
-    }
-
-    if (message) {
-      // Add error class to input
-      inputElement.classList.add('error');
-      
-      // Create and add error message
-      const errorSpan = document.createElement('span');
-      errorSpan.className = 'validation-error';
-      errorSpan.textContent = message;
-      inputElement.parentElement.parentElement.appendChild(errorSpan);
-    } else {
-      // Remove error class
-      inputElement.classList.remove('error');
-    }
-  };
-
-  // Handle input validation on blur and input
-  const handleInputValidation = (e) => {
-    const { name, value } = e.target;
-    let errorMessage = '';
-    
+  const validateField = (name, value, currentData = formData) => {
     if (name === 'name') {
-      errorMessage = validateName(value);
-    } else if (name === 'email') {
-      errorMessage = validateEmail(value);
-    } else if (name === 'mobile') {
-      errorMessage = validateMobile(value);
-    } else if (name === 'password') {
-      errorMessage = validatePassword(value);
-      // Also revalidate retype password if it exists
-      const retypePasswordInput = e.target.form.retypePassword;
-      if (retypePasswordInput && retypePasswordInput.value) {
-        const retypeError = validateRetypePassword(value, retypePasswordInput.value);
-        showError(retypePasswordInput, retypeError);
-      }
-    } else if (name === 'retypePassword') {
-      const passwordInput = e.target.form.password;
-      errorMessage = validateRetypePassword(passwordInput.value, value);
+      return validateName(value);
     }
-    
-    showError(e.target, errorMessage);
+    if (name === 'email') {
+      return validateEmail(value);
+    }
+    if (name === 'mobile') {
+      return validateMobile(value);
+    }
+    if (name === 'password') {
+      return validatePassword(value);
+    }
+    if (name === 'retypePassword') {
+      return validateRetypePassword(currentData.password, value);
+    }
+    return '';
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // Validate all fields before submission
-    const nameError = validateName(formData.name);
-    const emailError = validateEmail(formData.email);
-    const mobileError = validateMobile(formData.mobile);
-    const passwordError = validatePassword(formData.password);
-    const retypePasswordError = validateRetypePassword(formData.password, formData.retypePassword);
-    
-    // Show validation errors
-    showError(e.target.name, nameError);
-    showError(e.target.email, emailError);
-    showError(e.target.mobile, mobileError);
-    showError(e.target.password, passwordError);
-    showError(e.target.retypePassword, retypePasswordError);
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    const updatedData = {
+      ...formData,
+      [name]: value
+    };
 
-    // If there are validation errors, don't proceed
-    if (nameError || emailError || mobileError || passwordError || retypePasswordError) {
+    setFormData(updatedData);
+    setErrors(prev => ({
+      ...prev,
+      [name]: ''
+    }));
+
+    if (name === 'password' && formData.retypePassword) {
+      setErrors(prev => ({
+        ...prev,
+        retypePassword: validateRetypePassword(value, formData.retypePassword)
+      }));
+    }
+  };
+
+  const handleInputBlur = (e) => {
+    const { name, value } = e.target;
+    setErrors(prev => ({
+      ...prev,
+      [name]: validateField(name, value)
+    }));
+  };
+
+  const validateForm = () => {
+    const nextErrors = {
+      name: validateName(formData.name),
+      email: validateEmail(formData.email),
+      mobile: validateMobile(formData.mobile),
+      password: validatePassword(formData.password),
+      retypePassword: validateRetypePassword(formData.password, formData.retypePassword)
+    };
+
+    setErrors(nextErrors);
+    return !Object.values(nextErrors).some(Boolean);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
       alert('Please fix validation errors before submitting');
       return;
     }
-    
-    const response = fetch('http://localhost:5000/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(formData)
-    })
-    .then(res => res.json())
-    .then(data => {
+
+    const payload = {
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      password: formData.password,
+      rpassword: formData.retypePassword,
+      mobile_number: Number(formData.mobile)
+    };
+
+    try {
+      setIsSubmitting(true);
+      const response = await fetch('http://localhost:5000/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.message || 'Registration failed');
+      }
+
       console.log('Registration successful:', data);
       alert('Registration successful!');
       navigate('/login');
-    })
-    .catch(error => {
+    } catch (error) {
       console.error('Error during registration:', error);
-      alert('An error occurred during registration.');
-    });
-
+      alert(error.message || 'An error occurred during registration.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleNavClick = (targetSection) => {
@@ -217,12 +221,14 @@ const Register = () => {
                   name="name"
                   placeholder="Full Name"
                   required
-                  className="register-input"
-                  onBlur={handleInputValidation}
-                  onInput={handleInputValidation}
+                  value={formData.name}
+                  className={`register-input ${errors.name ? 'error' : ''}`}
+                  onChange={handleInputChange}
+                  onBlur={handleInputBlur}
                 />
                 <span className="register-input-icon">👤</span>
               </div>
+              {errors.name && <span className="validation-error">{errors.name}</span>}
             </div>
 
             <div className="register-form-group">
@@ -232,12 +238,14 @@ const Register = () => {
                   name="email"
                   placeholder="Email"
                   required
-                  className="register-input"
-                  onBlur={handleInputValidation}
-                  onInput={handleInputValidation}
+                  value={formData.email}
+                  className={`register-input ${errors.email ? 'error' : ''}`}
+                  onChange={handleInputChange}
+                  onBlur={handleInputBlur}
                 />
                 <span className="register-input-icon">📧</span>
               </div>
+              {errors.email && <span className="validation-error">{errors.email}</span>}
             </div>
 
             <div className="register-form-group">
@@ -247,12 +255,14 @@ const Register = () => {
                   name="mobile"
                   placeholder="Mobile Number"
                   required
-                  className="register-input"
-                  onBlur={handleInputValidation}
-                  onInput={handleInputValidation}
+                  value={formData.mobile}
+                  className={`register-input ${errors.mobile ? 'error' : ''}`}
+                  onChange={handleInputChange}
+                  onBlur={handleInputBlur}
                 />
                 <span className="register-input-icon">📱</span>
               </div>
+              {errors.mobile && <span className="validation-error">{errors.mobile}</span>}
             </div>
 
             <div className="register-form-group">
@@ -262,12 +272,14 @@ const Register = () => {
                   name="password"
                   placeholder="Password"
                   required
-                  className="register-input"
-                  onBlur={handleInputValidation}
-                  onInput={handleInputValidation}
+                  value={formData.password}
+                  className={`register-input ${errors.password ? 'error' : ''}`}
+                  onChange={handleInputChange}
+                  onBlur={handleInputBlur}
                 />
                 <span className="register-input-icon">🔒</span>
               </div>
+              {errors.password && <span className="validation-error">{errors.password}</span>}
             </div>
 
             <div className="register-form-group">
@@ -277,16 +289,18 @@ const Register = () => {
                   name="retypePassword"
                   placeholder="Retype Password"
                   required
-                  className="register-input"
-                  onBlur={handleInputValidation}
-                  onInput={handleInputValidation}
+                  value={formData.retypePassword}
+                  className={`register-input ${errors.retypePassword ? 'error' : ''}`}
+                  onChange={handleInputChange}
+                  onBlur={handleInputBlur}
                 />
                 <span className="register-input-icon">🔐</span>
               </div>
+              {errors.retypePassword && <span className="validation-error">{errors.retypePassword}</span>}
             </div>
 
-            <button type="submit" className="register-btn">
-              Register
+            <button type="submit" className="register-btn" disabled={isSubmitting}>
+              {isSubmitting ? 'Registering...' : 'Register'}
             </button>
 
             <div className="register-footer">
