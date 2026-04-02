@@ -15,6 +15,7 @@ import instagramLogo from './images/logos/icons8-instagram-logo-94.png';
 import youtubeLogo from './images/logos/icons8-youtube-logo-48.png';
 import linkedinLogo from './images/logos/icons8-linkedin-logo-48.png';
 import Dashboard from './components/dashboard.jsx';
+import AdminDashboard from './components/adminDashboard.jsx';
 
 function App() {
   const [userData, setUserData] = React.useState(null);
@@ -35,6 +36,7 @@ function App() {
 
   return (
     <Routes>
+      <Route path="/admin-dashboard" element={<AdminDashboard />} />
       <Route path="/login" element={<Login setUserData={setUserData} credentials={credentials} />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword credentials={credentials} updatePassword={updatePassword} />} />

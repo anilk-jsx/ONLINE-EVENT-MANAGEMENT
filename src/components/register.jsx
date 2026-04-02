@@ -10,6 +10,22 @@ const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const MOBILE_REGEX = /^[6-9]\d{9}$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
+const [formData, setFormData] = React.useState({
+  name: '',
+  email: '',
+  mobile: '',
+  password: '',
+  retypePassword: ''
+});
+
+const handleInputChange = (e) => {
+  const { name, value } = e.target;
+  setFormData(prevData => ({
+    ...prevData,
+    [name]: value
+  }));
+};
+
 const Register = () => {
   const navigate = useNavigate();
   
@@ -120,13 +136,6 @@ const Register = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const formData = {
-      name: e.target.name.value,
-      email: e.target.email.value,
-      mobile: e.target.mobile.value,
-      password: e.target.password.value,
-      retypePassword: e.target.retypePassword.value
-    };
     
     // Validate all fields before submission
     const nameError = validateName(formData.name);
@@ -148,10 +157,24 @@ const Register = () => {
       return;
     }
     
-    console.log('Registration attempt:', formData);
-    alert('Registration successful!');
-    // Navigate to login after successful registration
-    navigate('/login');
+    const response = fetch('http://localhost:5000/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    })
+    .then(res => res.json())
+    .then(data => {
+      console.log('Registration successful:', data);
+      alert('Registration successful!');
+      navigate('/login');
+    })
+    .catch(error => {
+      console.error('Error during registration:', error);
+      alert('An error occurred during registration.');
+    });
+
   };
 
   const handleNavClick = (targetSection) => {

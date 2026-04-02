@@ -107,7 +107,12 @@ const Login = ({ setUserData, credentials }) => {
     if(formData.email === credentials.email && formData.password === credentials.password){
       setUserData(formData);
       navigate('/dashboard');
-    } else {
+    }
+    else if(formData.email === 'admin@event.com' && formData.password === 'Admin@123') {
+      setUserData(formData);
+      navigate('/admin-dashboard');
+    }
+    else {
       alert("Invalid Credentials");
     }
   };
