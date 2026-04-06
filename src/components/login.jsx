@@ -8,7 +8,6 @@ import NavBar from './navBar.jsx';
 
 // Regular expressions for validation
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
 // const switchToDashboard = (formData) =>{
 //   return(
@@ -20,6 +19,7 @@ const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@
 
 const Login = ({ setUserData, credentials }) => {
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   
   // Validate email using regex
   const validateEmail = (email) => {
@@ -32,13 +32,10 @@ const Login = ({ setUserData, credentials }) => {
     return '';
   };
 
-  // Validate password using regex
+  // Validate password for login (basic validation)
   const validatePassword = (password) => {
     if (!password) {
       return 'Password is required';
-    }
-    if (!PASSWORD_REGEX.test(password)) {
-      return 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character';
     }
     return '';
   };
@@ -80,7 +77,7 @@ const Login = ({ setUserData, credentials }) => {
     showError(e.target, errorMessage);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     const formData = {
@@ -104,11 +101,42 @@ const Login = ({ setUserData, credentials }) => {
 
     console.log('Login attempt:', formData);
 
-    if(formData.email === credentials.email && formData.password === credentials.password){
-      setUserData(formData);
-      navigate('/dashboard');
-    } else {
-      alert("Invalid Credentials");
+    try {
+      setIsSubmitting(true);
+      const response = await fetch('http://localhost:5000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: formData.email.trim(),
+          password: formData.password
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.message || 'Login failed');
+      }
+
+      console.log('Login successful:', data);
+      
+      // Set user data from API response
+      setUserData(data.user);
+      
+      // Navigate based on user role
+      if (data.user.role === 'admin') {
+        navigate('/admin-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
+      
+    } catch (error) {
+      console.error('Error during login:', error);
+      alert(error.message || 'An error occurred during login.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -176,8 +204,8 @@ const Login = ({ setUserData, credentials }) => {
               </div>
             </div>
 
-            <button type="submit" className="login-btn">
-              Login
+            <button type="submit" className="login-btn" disabled={isSubmitting}>
+              {isSubmitting ? 'Logging in...' : 'Login'}
             </button>
 
             <div className="login-options">
