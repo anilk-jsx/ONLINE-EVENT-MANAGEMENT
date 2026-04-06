@@ -17,7 +17,8 @@ const Register = () => {
     email: '',
     mobile: '',
     password: '',
-    retypePassword: ''
+    retypePassword: '',
+    role: 'user'
   });
   const [errors, setErrors] = React.useState({});
   const [isSubmitting, setIsSubmitting] = React.useState(false);
