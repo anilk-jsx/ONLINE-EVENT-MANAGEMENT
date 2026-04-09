@@ -301,3 +301,42 @@
   border-color: #ff6b6b !important;
   box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2) !important;
 }
+.login-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.login-input {
+  width: 100%;
+  padding: 12px 45px 12px 40px;
+}
+
+/* LEFT ICON */
+.login-input-icon {
+  position: absolute;
+  left: 10px;
+  color: #888;
+}
+
+/* RIGHT ICON */
+.login-eye-icon {
+  position: absolute;
+  right: 10px;
+  cursor: pointer;
+  color: #888;
+}
+
+.login-eye-icon:hover {
+  color: #ff4d6d;
+}
+
+/* CAPS LOCK */
+.caps-warning {
+  color: #ff4d6d;
+  font-size: 12px;
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}

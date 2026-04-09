@@ -297,3 +297,35 @@
   border-color: #ff6b6b !important;
   box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2) !important;
 }
+.register-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.register-input {
+  width: 100%;
+  padding: 12px 40px 12px 35px; /* space for icons */
+  border-radius: 6px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+}
+
+/* LEFT ICON */
+.register-input-icon {
+  position: absolute;
+  left: 10px;
+  font-size: 14px;
+}
+
+/* RIGHT EYE ICON (INSIDE INPUT) */
+.register-eye-icon {
+  position: absolute;
+  right: 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.register-eye-icon:hover {
+  transform: scale(1.1);
+}
