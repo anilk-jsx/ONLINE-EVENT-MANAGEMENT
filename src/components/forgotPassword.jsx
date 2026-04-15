@@ -23,7 +23,6 @@ const ForgotPassword = () => {
     setMessage('');
     setError('');
 
-    // ✅ Validation
     if (!email) return setError('Email is required');
     if (!EMAIL_REGEX.test(email)) return setError('Invalid email address');
 
@@ -39,11 +38,9 @@ const ForgotPassword = () => {
     try {
       setLoading(true);
 
-      const res = await fetch('http://localhost:5000/api/reset-password', {
+      const res = await fetch('http://localhost:5000/reset-password', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
@@ -52,12 +49,10 @@ const ForgotPassword = () => {
       if (res.ok) {
         setMessage('Password updated successfully 🎉');
 
-        // reset form
         setEmail('');
         setPassword('');
         setRetypePassword('');
 
-        // redirect after 1.5 sec
         setTimeout(() => navigate('/login'), 1500);
       } else {
         setError(data.message || 'Something went wrong');
@@ -84,6 +79,7 @@ const ForgotPassword = () => {
           </div>
 
           <form className="login-form" onSubmit={handleSubmit}>
+            
             {/* EMAIL */}
             <div className="login-form-group">
               <div className="login-input-wrapper">
@@ -99,7 +95,7 @@ const ForgotPassword = () => {
               </div>
             </div>
 
-            {/* NEW PASSWORD */}
+            {/* PASSWORD */}
             <div className="login-form-group">
               <div className="login-input-wrapper">
                 <input
@@ -143,11 +139,9 @@ const ForgotPassword = () => {
               </div>
             </div>
 
-            {/* ERROR / SUCCESS */}
             {error && <span className="validation-error">{error}</span>}
             {message && <span className="success-message">{message}</span>}
 
-            {/* BUTTON */}
             <button
               type="submit"
               className="login-btn"
@@ -157,7 +151,6 @@ const ForgotPassword = () => {
               {loading ? 'Updating...' : 'Change Password'}
             </button>
 
-            {/* FOOTER */}
             <div className="login-footer">
               <p className="login-register-text">
                 Remembered your password?{' '}
@@ -166,6 +159,7 @@ const ForgotPassword = () => {
                 </Link>
               </p>
             </div>
+
           </form>
         </div>
       </div>
