@@ -18,7 +18,7 @@ const Register = () => {
     mobile: '',
     password: '',
     retypePassword: '',
-    role: 'user'
+    role: 'admin'
   });
   const [errors, setErrors] = React.useState({});
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -139,7 +139,7 @@ const Register = () => {
     return !Object.values(nextErrors).some(Boolean);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -147,32 +147,14 @@ const Register = () => {
       return;
     }
 
-    const payload = {
-      name: formData.name.trim(),
-      email: formData.email.trim(),
-      password: formData.password,
-      rpassword: formData.retypePassword,
-      mobile_number: Number(formData.mobile)
-    };
-
     try {
       setIsSubmitting(true);
-      const response = await fetch('http://localhost:5000/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
 
-      const data = await response.json();
+      // For demo purposes, registration is disabled
+      // In a real app, you would save this to a backend
+      console.log('Registration data:', formData);
 
-      if (!response.ok) {
-        throw new Error(data?.message || 'Registration failed');
-      }
-
-      console.log('Registration successful:', data);
-      alert('Registration successful!');
+      alert('Registration is currently disabled for demo. Please use the test credentials to login.\n\nUser: anil@gmail.com / Anil@123\nAdmin: admin@gmail.com / Admin@123');
       navigate('/login');
     } catch (error) {
       console.error('Error during registration:', error);

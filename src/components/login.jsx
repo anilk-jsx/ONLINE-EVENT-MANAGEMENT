@@ -77,18 +77,18 @@ const Login = ({ setUserData, credentials }) => {
     showError(e.target, errorMessage);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const formData = {
       email: e.target.email.value,
       password: e.target.password.value
     };
-    
+
     // Validate all fields before submission
     const emailError = validateEmail(formData.email);
     const passwordError = validatePassword(formData.password);
-    
+
     // Show validation errors
     showError(e.target.email, emailError);
     showError(e.target.password, passwordError);
@@ -103,35 +103,56 @@ const Login = ({ setUserData, credentials }) => {
 
     try {
       setIsSubmitting(true);
-      const response = await fetch('http://localhost:5000/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: formData.email.trim(),
-          password: formData.password
-        })
-      });
 
-      const data = await response.json();
+      // Hardcoded authentication credentials
+      const ADMIN_CREDENTIALS = {
+        email: 'admin@gmail.com',
+        password: 'Admin@123'
+      };
 
-      if (!response.ok) {
-        throw new Error(data?.message || 'Login failed');
-      }
+      const USER_CREDENTIALS = {
+        email: 'anil@gmail.com',
+        password: 'Anil@123'
+      };
 
-      console.log('Login successful:', data);
-      
-      // Set user data from API response
-      setUserData(data.user);
-      
-      // Navigate based on user role
-      if (data.user.role === 'admin') {
+      const trimmedEmail = formData.email.trim();
+      const trimmedPassword = formData.password;
+
+      // Check if admin credentials match
+      if (trimmedEmail === ADMIN_CREDENTIALS.email && trimmedPassword === ADMIN_CREDENTIALS.password) {
+        const adminData = {
+          id: 1,
+          email: trimmedEmail,
+          name: 'Admin User',
+          role: 'admin',
+          mobile: '9876543210'
+        };
+
+        console.log('Admin login successful:', adminData);
+        setUserData(adminData);
         navigate('/admin-dashboard');
-      } else {
-        navigate('/dashboard');
+        return;
       }
-      
+
+      // Check if user credentials match
+      if (trimmedEmail === USER_CREDENTIALS.email && trimmedPassword === USER_CREDENTIALS.password) {
+        const userData = {
+          id: 2,
+          email: trimmedEmail,
+          name: 'Anil Kumar',
+          role: 'user',
+          mobile: '9123456789'
+        };
+
+        console.log('User login successful:', userData);
+        setUserData(userData);
+        navigate('/dashboard');
+        return;
+      }
+
+      // Invalid credentials
+      throw new Error('Invalid email or password');
+
     } catch (error) {
       console.error('Error during login:', error);
       alert(error.message || 'An error occurred during login.');

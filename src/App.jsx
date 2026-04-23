@@ -19,16 +19,27 @@ import AdminDashboard from './components/adminDashboard.jsx';
 
 function App() {
   const [userData, setUserData] = React.useState(null);
-  // Store credentials locally (default user)
-  const [credentials, setCredentials] = React.useState({
-    email: 'anil@gmail.com',
-    password: 'Anil@123',
-  });
+
+  // Hardcoded authentication credentials
+  const CREDENTIALS = {
+    user: {
+      email: 'anil@gmail.com',
+      password: 'Anil@123',
+    },
+    admin: {
+      email: 'admin@gmail.com',
+      password: 'Admin@123',
+    }
+  };
 
   // Function to update password for a given email
   const updatePassword = (email, newPassword) => {
-    if (email === credentials.email) {
-      setCredentials(prev => ({ ...prev, password: newPassword }));
+    if (email === CREDENTIALS.user.email) {
+      CREDENTIALS.user.password = newPassword;
+      return true;
+    }
+    if (email === CREDENTIALS.admin.email) {
+      CREDENTIALS.admin.password = newPassword;
       return true;
     }
     return false;
@@ -36,10 +47,10 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/admin-dashboard" element={<AdminDashboard />} />
-      <Route path="/login" element={<Login setUserData={setUserData} credentials={credentials} />} />
+      <Route path="/admin-dashboard/*" element={<AdminDashboard />} />
+      <Route path="/login" element={<Login setUserData={setUserData} />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword credentials={credentials} updatePassword={updatePassword} />} />
+      <Route path="/forgot-password" element={<ForgotPassword updatePassword={updatePassword} />} />
       <Route path="/dashboard/*" element={<Dashboard data={userData} />} />
       <Route path="/" element={
         <>

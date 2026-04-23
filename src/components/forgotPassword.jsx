@@ -5,13 +5,16 @@ import './login.css';
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-const ForgotPassword = ({ credentials, updatePassword }) => {
+const ForgotPassword = ({ updatePassword }) => {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [retypePassword, setRetypePassword] = useState('');
 	const [message, setMessage] = useState('');
 	const [error, setError] = useState('');
 	const navigate = useNavigate();
+
+	// Hardcoded credentials
+	const VALID_EMAILS = ['anil@gmail.com', 'admin@gmail.com'];
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
@@ -38,8 +41,8 @@ const ForgotPassword = ({ credentials, updatePassword }) => {
 			setError('Passwords do not match');
 			return;
 		}
-		// Check if email matches the stored user
-		if (email !== credentials.email) {
+		// Check if email is valid (user or admin)
+		if (!VALID_EMAILS.includes(email)) {
 			setError('No user found with this email');
 			return;
 		}

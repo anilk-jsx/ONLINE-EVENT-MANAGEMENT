@@ -6,6 +6,48 @@ function DashboardHome({ userProfile, registeredEvents, bookedEvents }) {
         return new Date(dateString).toLocaleDateString(undefined, options);
     };
 
+    // Calculate stats
+    const pendingBookings = bookedEvents.filter(b => b.status === 'Pending').length;
+    const confirmedBookings = bookedEvents.filter(b => b.status === 'Confirmed').length;
+    const completedBookings = bookedEvents.filter(b => b.status === 'Completed').length;
+    const totalAmountSpent = bookedEvents.reduce((total, event) => total + event.totalAmount, 0);
+
+    // Get recent activities (last 5)
+    const getRecentActivities = () => {
+        const activities = [];
+
+        // Add recent bookings
+        bookedEvents.slice(-3).forEach((booking, index) => {
+            activities.push({
+                id: `booking-${booking.id}`,
+                type: 'booking',
+                title: `Booked: ${booking.title}`,
+                date: booking.bookingDate,
+                status: booking.status,
+                timestamp: new Date(booking.bookingDate).getTime(),
+                icon: '🎫'
+            });
+        });
+
+        // Add recent registrations
+        registeredEvents.slice(-3).forEach((event, index) => {
+            activities.push({
+                id: `registered-${event.id}`,
+                type: 'registration',
+                title: `Registered: ${event.title}`,
+                date: event.registrationDate,
+                status: event.status,
+                timestamp: new Date(event.registrationDate).getTime(),
+                icon: '✓'
+            });
+        });
+
+        // Sort by timestamp (newest first) and return top 5
+        return activities.sort((a, b) => b.timestamp - a.timestamp).slice(0, 5);
+    };
+
+    const recentActivities = getRecentActivities();
+
     return (
         <div className="dashboard-content">
             <div className="dashboard-header">
@@ -46,7 +88,7 @@ function DashboardHome({ userProfile, registeredEvents, bookedEvents }) {
                 </div>
             </div>
 
-            {/* Stats Cards */}
+            {/* Main Stats Grid */}
             <div className="stats-grid">
                 <div className="stat-card">
                     <div className="stat-icon registered">
@@ -63,7 +105,7 @@ function DashboardHome({ userProfile, registeredEvents, bookedEvents }) {
                     </div>
                     <div className="stat-info">
                         <h3>{bookedEvents.length}</h3>
-                        <p>Booked Events</p>
+                        <p>Total Bookings</p>
                     </div>
                 </div>
                 <div className="stat-card">
@@ -71,9 +113,76 @@ function DashboardHome({ userProfile, registeredEvents, bookedEvents }) {
                         <span>💰</span>
                     </div>
                     <div className="stat-info">
-                        <h3>₹{bookedEvents.reduce((total, event) => total + event.totalAmount, 0).toLocaleString('en-IN')}</h3>
+                        <h3>₹{totalAmountSpent.toLocaleString('en-IN')}</h3>
                         <p>Total Spent</p>
                     </div>
+                </div>
+            </div>
+
+            {/* Additional Stats Grid */}
+            <div className="additional-stats">
+                <div className="mini-stat-card">
+                    <div className="mini-stat-icon confirmed">
+                        <span>✓</span>
+                    </div>
+                    <div className="mini-stat-content">
+                        <h4>{confirmedBookings}</h4>
+                        <p>Confirmed</p>
+                    </div>
+                </div>
+                <div className="mini-stat-card">
+                    <div className="mini-stat-icon pending">
+                        <span>⏳</span>
+                    </div>
+                    <div className="mini-stat-content">
+                        <h4>{pendingBookings}</h4>
+                        <p>Pending</p>
+                    </div>
+                </div>
+                <div className="mini-stat-card">
+                    <div className="mini-stat-icon completed">
+                        <span>🎉</span>
+                    </div>
+                    <div className="mini-stat-content">
+                        <h4>{completedBookings}</h4>
+                        <p>Completed</p>
+                    </div>
+                </div>
+                <div className="mini-stat-card">
+                    <div className="mini-stat-icon upcoming">
+                        <span>🚀</span>
+                    </div>
+                    <div className="mini-stat-content">
+                        <h4>{registeredEvents.length + bookedEvents.length}</h4>
+                        <p>Total Events</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Recent Activity Section */}
+            <div className="recent-activity-section">
+                <h2>Recent Activity</h2>
+                <div className="activity-list">
+                    {recentActivities.length > 0 ? (
+                        recentActivities.map((activity) => (
+                            <div key={activity.id} className="activity-item">
+                                <div className="activity-icon">
+                                    {activity.icon}
+                                </div>
+                                <div className="activity-details">
+                                    <h4>{activity.title}</h4>
+                                    <p className="activity-date">{formatDate(activity.date)}</p>
+                                </div>
+                                <div className="activity-status">
+                                    <span className={`status-badge ${activity.status.toLowerCase()}`}>
+                                        {activity.status}
+                                    </span>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="no-activity">No recent activities yet</p>
+                    )}
                 </div>
             </div>
 
@@ -81,25 +190,29 @@ function DashboardHome({ userProfile, registeredEvents, bookedEvents }) {
             <div className="registered-events-section">
                 <h2>Events You're Registered For</h2>
                 <div className="events-list">
-                    {registeredEvents.map(event => (
-                        <div key={event.id} className="event-item">
-                            <div className="event-main-info">
-                                <h4>{event.title}</h4>
-                                <div className="event-meta">
-                                    <span className="event-date">{formatDate(event.date)} at {event.time}</span>
-                                    <span className="event-location">{event.location}</span>
-                                    <span className={`event-category ${event.category.toLowerCase()}`}>
-                                        {event.category}
+                    {registeredEvents.length > 0 ? (
+                        registeredEvents.map(event => (
+                            <div key={event.id} className="event-item">
+                                <div className="event-main-info">
+                                    <h4>{event.title}</h4>
+                                    <div className="event-meta">
+                                        <span className="event-date">{formatDate(event.date)} at {event.time}</span>
+                                        <span className="event-location">{event.location}</span>
+                                        <span className={`event-category ${event.category.toLowerCase()}`}>
+                                            {event.category}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="event-status">
+                                    <span className={`status-badge ${event.status.toLowerCase()}`}>
+                                        {event.status}
                                     </span>
                                 </div>
                             </div>
-                            <div className="event-status">
-                                <span className={`status-badge ${event.status.toLowerCase()}`}>
-                                    {event.status}
-                                </span>
-                            </div>
-                        </div>
-                    ))}
+                        ))
+                    ) : (
+                        <p className="no-events">No registered events yet. Browse upcoming events to register!</p>
+                    )}
                 </div>
             </div>
         </div>
