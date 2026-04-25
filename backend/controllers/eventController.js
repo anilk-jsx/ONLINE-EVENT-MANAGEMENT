@@ -434,3 +434,68 @@ export async function rejectEvent(req, res) {
     res.status(500).json({ success: false, message: 'Failed to reject event', error: error.message });
   }
 }
+
+// Admin: Create event (auto-approved)
+export async function adminCreateEvent(req, res) {
+  try {
+    const { title, description, category, date, time, location, price, available_seats, duration, event_type } = req.body;
+    const organizer_id = req.user.id;
+
+    if (!title || !date || !time || !location || !available_seats || !duration) {
+      return res.status(400).json({
+        success: false,
+        message: 'Required fields missing: title, date, time, location, available_seats, duration'
+      });
+    }
+
+    const newEvent = new Event({
+      title,
+      description,
+      category: category || 'Other',
+      date,
+      time,
+      location,
+      organizer_id,
+      price: price || 0,
+      available_seats,
+      duration,
+      event_type: event_type || 'public',
+      status: 'approved'
+    });
+
+    await newEvent.save();
+    await newEvent.populate('organizer_id', 'name email mobile_number');
+
+    res.status(201).json({
+      success: true,
+      message: 'Event created and auto-approved',
+      event: { ...newEvent.toObject(), registered_count: 0 }
+    });
+  } catch (error) {
+    console.error('Admin create event error:', error);
+    res.status(500).json({ success: false, message: 'Failed to create event', error: error.message });
+  }
+}
+
+// Admin: Delete any event
+export async function adminDeleteEvent(req, res) {
+  try {
+    const { eventId } = req.params;
+
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+
+    await Event.findByIdAndDelete(eventId);
+    await Registration.deleteMany({ event_id: eventId });
+
+    res.json({
+      success: true,
+      message: 'Event deleted successfully'
+    });
+  } catch (error) {
+    console.error('Admin delete event error:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete event', error: error.message });
+  }
+}
