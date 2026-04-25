@@ -1,5 +1,5 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Routes, Route, Link } from 'react-router-dom';
 import './App.css';
 import Login from './components/login.jsx';
 import Register from './components/register.jsx';
@@ -19,18 +19,28 @@ import AdminDashboard from './components/adminDashboard.jsx';
 
 function App() {
   const [userData, setUserData] = React.useState(null);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
+  const [liveStats, setLiveStats] = useState(null);
 
-  // Hardcoded authentication credentials
-  const CREDENTIALS = {
-    user: {
-      email: 'anil@gmail.com',
-      password: 'Anil@123',
-    },
-    admin: {
-      email: 'admin@gmail.com',
-      password: 'Admin@123',
-    }
-  };
+  useEffect(() => {
+    // Fetch upcoming approved public events
+    fetch('http://localhost:5001/api/events/upcoming')
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) setUpcomingEvents(data.events.slice(0, 3));
+      })
+      .catch(console.error)
+      .finally(() => setEventsLoading(false));
+
+    // Fetch platform stats for the about section
+    fetch('http://localhost:5001/api/events/admin/stats', {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('authToken')}` }
+    })
+      .then(r => r.json())
+      .then(data => { if (data.success) setLiveStats(data.stats); })
+      .catch(() => {});
+  }, []);
 
   // Function to update password for a given email
   const updatePassword = (email, newPassword) => {
@@ -89,10 +99,10 @@ function App() {
                   </p>
 
                   <div className="hero-buttons">
-                    <button className="btn-primary">
+                    <Link to="/login" className="btn-primary" style={{ textDecoration: 'none' }}>
                       Book event
                       <span className="btn-arrow">→</span>
-                    </button>
+                    </Link>
                     <a className="btn-secondary" href="#s-events">
                       See events
                       <span className="btn-arrow">→</span>
@@ -153,65 +163,69 @@ function App() {
                   </div>
                 </div>
               </div>
-            </section>
-
-            {/* Upcoming Events Section */}
+            </section>            {/* Upcoming Events Section */}
             <section className="upcoming-section" id="events">
               <div className="upcoming-container">
                 <h2 className="upcoming-title">Upcoming Events</h2>
 
-                <div className="upcoming-grid">
-                  <div className="upcoming-card">
-                    <div className="upcoming-date">
-                      <span className="date-day">19</span>
-                      <span className="date-month">JAN</span>
-                    </div>
-                    <div className="upcoming-content">
-                      <h3 className="upcoming-event-name">Winter Music Festival</h3>
-                      <p className="upcoming-location">
-                        <span className="location-icon">📍</span> The Celebration Sphere
-                      </p>
-                      <p className="upcoming-time">
-                        <span className="time-icon">🕐</span> 6:00 PM - 11:00 PM
-                      </p>
-                      <button className="upcoming-btn">Register Now</button>
-                    </div>
+                {eventsLoading ? (
+                  <div className="upcoming-grid">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="upcoming-card" style={{ opacity: 0.5 }}>
+                        <div className="upcoming-date">
+                          <span className="date-day" style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '6px', width: '40px', display: 'block' }}>&nbsp;</span>
+                          <span className="date-month" style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '4px', width: '32px', display: 'block', marginTop: '4px' }}>&nbsp;</span>
+                        </div>
+                        <div className="upcoming-content">
+                          <div style={{ height: '20px', background: 'rgba(255,255,255,0.08)', borderRadius: '6px', marginBottom: '10px' }} />
+                          <div style={{ height: '14px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', marginBottom: '8px', width: '70%' }} />
+                          <div style={{ height: '14px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', width: '50%' }} />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-
-                  <div className="upcoming-card">
-                    <div className="upcoming-date">
-                      <span className="date-day">22</span>
-                      <span className="date-month">JAN</span>
-                    </div>
-                    <div className="upcoming-content">
-                      <h3 className="upcoming-event-name">Corporate Gala Dinner</h3>
-                      <p className="upcoming-location">
-                        <span className="location-icon">📍</span> Grand Hotel The Destiny Convention
-                      </p>
-                      <p className="upcoming-time">
-                        <span className="time-icon">🕐</span> 7:30 PM - 10:30 PM
-                      </p>
-                      <button className="upcoming-btn">Register Now</button>
-                    </div>
+                ) : upcomingEvents.length > 0 ? (
+                  <div className="upcoming-grid">
+                    {upcomingEvents.map(event => {
+                      const dateObj = event.date ? new Date(event.date) : null;
+                      const day  = dateObj ? dateObj.getDate() : '—';
+                      const month = dateObj
+                        ? dateObj.toLocaleString('default', { month: 'short' }).toUpperCase()
+                        : '—';
+                      return (
+                        <div key={event._id} className="upcoming-card">
+                          <div className="upcoming-date">
+                            <span className="date-day">{day}</span>
+                            <span className="date-month">{month}</span>
+                          </div>
+                          <div className="upcoming-content">
+                            <h3 className="upcoming-event-name">{event.title}</h3>
+                            <p className="upcoming-location">
+                              <span className="location-icon">📍</span> {event.location}
+                            </p>
+                            <p className="upcoming-time">
+                              <span className="time-icon">🕐</span> {event.time}
+                              {event.duration ? ` · ${event.duration}` : ''}
+                            </p>
+                            {event.price > 0 && (
+                              <p style={{ fontSize: '0.82rem', color: '#a78bfa', margin: '4px 0 8px' }}>
+                                💰 ₹{event.price.toLocaleString('en-IN')}
+                              </p>
+                            )}
+                            <Link to="/login" className="upcoming-btn" style={{ display: 'inline-block', textDecoration: 'none' }}>
+                              Register Now
+                            </Link>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-
-                  <div className="upcoming-card">
-                    <div className="upcoming-date">
-                      <span className="date-day">28</span>
-                      <span className="date-month">FEB</span>
-                    </div>
-                    <div className="upcoming-content">
-                      <h3 className="upcoming-event-name">Art & Culture Exhibition</h3>
-                      <p className="upcoming-location">
-                        <span className="location-icon">📍</span> Museum of Modern Art
-                      </p>
-                      <p className="upcoming-time">
-                        <span className="time-icon">🕐</span> 10:00 AM - 6:00 PM
-                      </p>
-                      <button className="upcoming-btn">Register Now</button>
-                    </div>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.5)' }}>
+                    <p style={{ fontSize: '1.1rem' }}>No upcoming events at the moment.</p>
+                    <p style={{ fontSize: '0.9rem', marginTop: '8px' }}>Check back soon!</p>
                   </div>
-                </div>
+                )}
               </div>
             </section>
 
@@ -301,16 +315,16 @@ function App() {
 
                 <div className="about-stats">
                   <div className="stat-card">
-                    <h3>250+</h3>
+                    <h3>{liveStats ? `${liveStats.approvedEvents}+` : '250+'}</h3>
                     <p>Events delivered with bespoke decor</p>
                   </div>
                   <div className="stat-card">
-                    <h3>98%</h3>
-                    <p>Client satisfaction across all engagements</p>
+                    <h3>{liveStats ? `${liveStats.activeRegistrations}+` : '98%'}</h3>
+                    <p>{liveStats ? 'Active registrations on platform' : 'Client satisfaction across all engagements'}</p>
                   </div>
                   <div className="stat-card">
-                    <h3>50+</h3>
-                    <p>Vendor partners for flawless execution</p>
+                    <h3>{liveStats ? `${liveStats.totalUsers}+` : '50+'}</h3>
+                    <p>{liveStats ? 'Registered members on platform' : 'Vendor partners for flawless execution'}</p>
                   </div>
                 </div>
               </div>
