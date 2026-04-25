@@ -43,6 +43,11 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'admin'],
     default: 'user'
   },
+  location: {
+    type: String,
+    trim: true,
+    default: ''
+  },
   created_at: {
     type: Date,
     default: Date.now

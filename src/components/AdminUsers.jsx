@@ -1,81 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function AdminUsers() {
-    const [users] = useState([
-        {
-            id: 1,
-            name: 'Anil Kumar Nayak',
-            email: 'anil@gmail.com',
-            role: 'user',
-            joinDate: '2024-01-15',
-            status: 'Active',
-            phone: '+1 234 567 8900'
-        },
-        {
-            id: 2,
-            name: 'Priya Sharma',
-            email: 'priya.sharma@email.com',
-            role: 'user',
-            joinDate: '2024-02-20',
-            status: 'Active',
-            phone: '+1 345 678 9012'
-        },
-        {
-            id: 3,
-            name: 'Rajesh Patel',
-            email: 'rajesh.p@email.com',
-            role: 'organizer',
-            joinDate: '2024-03-10',
-            status: 'Active',
-            phone: '+1 456 789 0123'
-        },
-        {
-            id: 4,
-            name: 'Admin User',
-            email: 'admin@email.com',
-            role: 'admin',
-            joinDate: '2023-12-01',
-            status: 'Active',
-            phone: '+1 567 890 1234'
-        },
-        {
-            id: 5,
-            name: 'Sarah Johnson',
-            email: 'sarah.j@email.com',
-            role: 'user',
-            joinDate: '2024-04-05',
-            status: 'Active',
-            phone: '+1 678 901 2345'
-        },
-        {
-            id: 6,
-            name: 'Michael Chen',
-            email: 'michael.chen@email.com',
-            role: 'organizer',
-            joinDate: '2024-01-25',
-            status: 'Inactive',
-            phone: '+1 789 012 3456'
-        },
-        {
-            id: 7,
-            name: 'Emma Wilson',
-            email: 'emma.w@email.com',
-            role: 'user',
-            joinDate: '2024-03-15',
-            status: 'Active',
-            phone: '+1 890 123 4567'
-        },
-        {
-            id: 8,
-            name: 'David Martinez',
-            email: 'david.m@email.com',
-            role: 'user',
-            joinDate: '2024-04-01',
-            status: 'Active',
-            phone: '+1 901 234 5678'
-        }
-    ]);
-
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState('All');
 
@@ -83,6 +10,27 @@ function AdminUsers() {
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
         return new Date(dateString).toLocaleDateString(undefined, options);
     };
+
+    // Fetch all users from the backend
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await fetch('http://localhost:5001/api/auth/admin/users', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    setUsers(data.users);
+                }
+            } catch (error) {
+                console.error('Failed to fetch users:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchUsers();
+    }, []);
 
     const filteredUsers = users.filter(user => {
         const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -93,10 +41,20 @@ function AdminUsers() {
 
     const stats = {
         total: users.length,
-        active: users.filter(u => u.status === 'Active').length,
-        inactive: users.filter(u => u.status === 'Inactive').length,
-        organizers: users.filter(u => u.role === 'organizer').length
+        admins: users.filter(u => u.role === 'admin').length,
+        regularUsers: users.filter(u => u.role === 'user').length
     };
+
+    if (loading) {
+        return (
+            <div className="admin-content">
+                <div className="admin-header">
+                    <h1>User Management</h1>
+                    <p>Loading users...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="admin-content">
@@ -112,16 +70,12 @@ function AdminUsers() {
                     <p>Total Users</p>
                 </div>
                 <div className="stat-box">
-                    <h4>{stats.active}</h4>
-                    <p>Active Users</p>
+                    <h4>{stats.regularUsers}</h4>
+                    <p>Regular Users</p>
                 </div>
                 <div className="stat-box">
-                    <h4>{stats.inactive}</h4>
-                    <p>Inactive Users</p>
-                </div>
-                <div className="stat-box">
-                    <h4>{stats.organizers}</h4>
-                    <p>Organizers</p>
+                    <h4>{stats.admins}</h4>
+                    <p>Admins</p>
                 </div>
             </div>
 
@@ -135,7 +89,7 @@ function AdminUsers() {
                     className="search-input"
                 />
                 <div className="role-buttons">
-                    {['All', 'user', 'organizer', 'admin'].map(role => (
+                    {['All', 'user', 'admin'].map(role => (
                         <button
                             key={role}
                             className={`role-btn ${roleFilter === role ? 'active' : ''}`}
@@ -155,15 +109,15 @@ function AdminUsers() {
                             <th>Name</th>
                             <th>Email</th>
                             <th>Role</th>
+                            <th>Location</th>
                             <th>Join Date</th>
-                            <th>Status</th>
                             <th>Contact</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredUsers.length > 0 ? (
                             filteredUsers.map(user => (
-                                <tr key={user.id}>
+                                <tr key={user._id}>
                                     <td>
                                         <div className="user-cell">
                                             <div className="user-avatar">{user.name.charAt(0)}</div>
@@ -176,13 +130,9 @@ function AdminUsers() {
                                             {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                                         </span>
                                     </td>
-                                    <td>{formatDate(user.joinDate)}</td>
-                                    <td>
-                                        <span className={`status-badge ${user.status.toLowerCase()}`}>
-                                            {user.status}
-                                        </span>
-                                    </td>
-                                    <td>{user.phone}</td>
+                                    <td>{user.location || 'N/A'}</td>
+                                    <td>{formatDate(user.created_at)}</td>
+                                    <td>{user.mobile_number || 'N/A'}</td>
                                 </tr>
                             ))
                         ) : (

@@ -16,6 +16,7 @@ const Register = () => {
     name: '',
     email: '',
     mobile: '',
+    location: '',
     password: '',
     retypePassword: '',
     role: 'user'
@@ -153,6 +154,7 @@ const Register = () => {
       password: formData.password,
       rpassword: formData.retypePassword,
       mobile_number: formData.mobile.trim(),
+      location: formData.location.trim(),
       role: formData.role || 'user'
     };
 
@@ -265,6 +267,20 @@ const Register = () => {
                 <span className="register-input-icon">📱</span>
               </div>
               {errors.mobile && <span className="validation-error">{errors.mobile}</span>}
+            </div>
+
+            <div className="register-form-group">
+              <div className="register-input-wrapper">
+                <input
+                  type="text"
+                  name="location"
+                  placeholder="Location (City, State)"
+                  value={formData.location}
+                  className="register-input"
+                  onChange={handleInputChange}
+                />
+                <span className="register-input-icon">📍</span>
+              </div>
             </div>
 
             <div className="register-form-group">

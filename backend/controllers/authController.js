@@ -6,7 +6,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 
 export async function register(req, res) {
   try {
-    const { name, email, password, rpassword, mobile_number, role = 'user' } = req.body;
+    const { name, email, password, rpassword, mobile_number, role = 'user', location = '' } = req.body;
     const normalizedEmail = email?.toLowerCase().trim();
 
     // Validation
@@ -44,7 +44,8 @@ export async function register(req, res) {
       email: normalizedEmail,
       mobile_number,
       password: hashedPassword,
-      role
+      role,
+      location
     });
 
     await newUser.save();
@@ -55,7 +56,8 @@ export async function register(req, res) {
       name: newUser.name,
       email: newUser.email,
       mobile_number: newUser.mobile_number,
-      role: newUser.role
+      role: newUser.role,
+      location: newUser.location
     };
 
     // Generate JWT token
@@ -126,6 +128,7 @@ export async function login(req, res) {
       email: user.email,
       mobile_number: user.mobile_number,
       role: user.role,
+      location: user.location,
       created_at: user.created_at
     };
 
@@ -169,6 +172,25 @@ export async function getProfile(req, res) {
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve profile',
+      error: error.message
+    });
+  }
+}
+
+// Admin: Get all users
+export async function getAllUsers(req, res) {
+  try {
+    const users = await User.find().select('-password').sort({ created_at: -1 });
+
+    res.json({
+      success: true,
+      users
+    });
+  } catch (error) {
+    console.error('Get all users error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve users',
       error: error.message
     });
   }
