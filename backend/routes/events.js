@@ -4,6 +4,7 @@ import { authMiddleware } from '../middleware/authMiddleware.js';
 import {
   createEvent,
   getEvents,
+  getUpcomingEvents,
   getEventById,
   updateEvent,
   deleteEvent,
@@ -54,7 +55,10 @@ const validateCreateEvent = [
     .notEmpty().withMessage('Duration is required'),
   body('price')
     .optional()
-    .isFloat({ min: 0 }).withMessage('Price must be a positive number')
+    .isFloat({ min: 0 }).withMessage('Price must be a positive number'),
+  body('event_type')
+    .optional()
+    .isIn(['public', 'private']).withMessage('Event type must be public or private')
 ];
 
 // Routes
@@ -70,6 +74,9 @@ router.post(
 
 // Get all events (public)
 router.get('/', getEvents);
+
+// Get upcoming events (public)
+router.get('/upcoming', getUpcomingEvents);
 
 // Get my events (protected)
 router.get('/my-events', authMiddleware, getMyEvents);

@@ -15,6 +15,14 @@ export async function registerForEvent(req, res) {
       });
     }
 
+    // Check if event is private
+    if (event.event_type === 'private' && event.organizer_id.toString() !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'This is a private event. Only the organizer can add participants.'
+      });
+    }
+
     // Check if already registered
     const existingRegistration = await Registration.findOne({
       user_id: userId,

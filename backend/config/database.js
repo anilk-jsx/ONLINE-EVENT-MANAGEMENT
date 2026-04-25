@@ -99,6 +99,16 @@ const eventSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending'
+  },
+  event_type: {
+    type: String,
+    enum: ['public', 'private'],
+    default: 'public'
+  },
   created_at: {
     type: Date,
     default: Date.now

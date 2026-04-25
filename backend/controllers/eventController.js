@@ -3,7 +3,7 @@ import { Event, Registration, User } from '../config/database.js';
 // Create a new event
 export async function createEvent(req, res) {
   try {
-    const { title, description, category, date, time, location, price, available_seats, duration } = req.body;
+    const { title, description, category, date, time, location, price, available_seats, duration, event_type } = req.body;
     const organizer_id = req.user.id;
 
     // Validation
@@ -25,7 +25,8 @@ export async function createEvent(req, res) {
       organizer_id,
       price: price || 0,
       available_seats,
-      duration
+      duration,
+      event_type: event_type || 'public'
     });
 
     await newEvent.save();
@@ -138,7 +139,7 @@ export async function getEventById(req, res) {
 export async function updateEvent(req, res) {
   try {
     const { eventId } = req.params;
-    const { title, description, category, date, time, location, price, available_seats, duration } = req.body;
+    const { title, description, category, date, time, location, price, available_seats, duration, event_type } = req.body;
     const userId = req.user.id;
 
     const event = await Event.findById(eventId);
@@ -168,6 +169,7 @@ export async function updateEvent(req, res) {
     if (price !== undefined) event.price = price;
     if (available_seats) event.available_seats = available_seats;
     if (duration) event.duration = duration;
+    if (event_type) event.event_type = event_type;
 
     event.updated_at = new Date();
     await event.save();
@@ -274,6 +276,49 @@ export async function getMyEvents(req, res) {
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve my events',
+      error: error.message
+    });
+  }
+}
+
+// Get upcoming public events
+export async function getUpcomingEvents(req, res) {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Find upcoming approved public events
+    const events = await Event.find({
+      status: 'approved',
+      event_type: 'public',
+      date: { $gte: today }
+    })
+    .populate('organizer_id', 'name email')
+    .sort({ date: 1, time: 1 });
+
+    // Calculate available seats for each event
+    const eventsWithSeats = await Promise.all(events.map(async (event) => {
+      const registrationCount = await Registration.countDocuments({ event_id: event._id, status: { $ne: 'cancelled' } });
+      const available_seats_remaining = event.available_seats - registrationCount;
+      return {
+        ...event.toObject(),
+        registered_count: registrationCount,
+        available_seats_remaining
+      };
+    }));
+
+    // Filter events that have seats available
+    const availableEvents = eventsWithSeats.filter(e => e.available_seats_remaining > 0);
+
+    res.json({
+      success: true,
+      message: 'Upcoming events retrieved successfully',
+      events: availableEvents
+    });
+  } catch (error) {
+    console.error('Get upcoming events error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve upcoming events',
       error: error.message
     });
   }

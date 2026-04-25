@@ -17,9 +17,9 @@ function UpcomingEvents({ upcomingEvents, registeredEventIds, handleRegisterEven
     // Filter events based on search, category, and price
     const filteredEvents = useMemo(() => {
         return upcomingEvents.filter(event => {
-            const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                event.organizer.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSearch = event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                event.organizer_id?.name?.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesCategory = selectedCategory === 'All' || event.category === selectedCategory;
             const matchesPrice = event.price >= priceRange[0] && event.price <= priceRange[1];
 
@@ -102,7 +102,7 @@ function UpcomingEvents({ upcomingEvents, registeredEventIds, handleRegisterEven
             <div className="events-grid">
                 {filteredEvents.length > 0 ? (
                     filteredEvents.map(event => (
-                    <div key={event.id} className="event-card" onClick={() => handleEventClick(event)}>
+                    <div key={event._id} className="event-card" onClick={() => handleEventClick(event)}>
                         <div className="event-card-header">
                             <div className="event-category-tag">{event.category}</div>
                             <div className="event-price">₹{event.price.toLocaleString('en-IN')}</div>
@@ -121,7 +121,7 @@ function UpcomingEvents({ upcomingEvents, registeredEventIds, handleRegisterEven
                                 </div>
                                 <div className="detail-row">
                                     <span className="detail-icon">🏢</span>
-                                    <span>{event.organizer}</span>
+                                    <span>{event.organizer_id?.name || 'Unknown'}</span>
                                 </div>
                                 <div className="detail-row">
                                     <span className="detail-icon">⏱️</span>
@@ -129,23 +129,23 @@ function UpcomingEvents({ upcomingEvents, registeredEventIds, handleRegisterEven
                                 </div>
                                 <div className="detail-row">
                                     <span className="detail-icon">🪑</span>
-                                    <span>{event.availableSeats} seats available</span>
+                                    <span>{event.available_seats_remaining} seats available</span>
                                 </div>
                             </div>
                             <div className="event-card-footer">
                                 <button
                                     className={`register-btn ${
-                                        registeredEventIds.includes(event.id) ? 'registered' : ''
+                                        registeredEventIds.includes(event._id) ? 'registered' : ''
                                     }`}
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        handleRegisterEvent(event.id);
+                                        handleRegisterEvent(event._id);
                                     }}
-                                    disabled={registeredEventIds.includes(event.id) || event.availableSeats === 0}
+                                    disabled={registeredEventIds.includes(event._id) || event.available_seats_remaining === 0}
                                 >
-                                    {registeredEventIds.includes(event.id)
+                                    {registeredEventIds.includes(event._id)
                                         ? '✓ Registered'
-                                        : event.availableSeats === 0
+                                        : event.available_seats_remaining === 0
                                         ? 'Sold Out'
                                         : 'Register Now'
                                     }
@@ -189,7 +189,7 @@ function UpcomingEvents({ upcomingEvents, registeredEventIds, handleRegisterEven
                             </div>
                             <div className="modal-info-row">
                                 <span className="modal-label">Organizer:</span>
-                                <span className="modal-value">{selectedEvent.organizer}</span>
+                                <span className="modal-value">{selectedEvent.organizer_id?.name || 'Unknown'}</span>
                             </div>
                             <div className="modal-info-row">
                                 <span className="modal-label">Duration:</span>
@@ -197,7 +197,7 @@ function UpcomingEvents({ upcomingEvents, registeredEventIds, handleRegisterEven
                             </div>
                             <div className="modal-info-row">
                                 <span className="modal-label">Available Seats:</span>
-                                <span className="modal-value">{selectedEvent.availableSeats}</span>
+                                <span className="modal-value">{selectedEvent.available_seats_remaining}</span>
                             </div>
                             <div className="modal-info-row">
                                 <span className="modal-label">Price:</span>
@@ -217,17 +217,17 @@ function UpcomingEvents({ upcomingEvents, registeredEventIds, handleRegisterEven
                             </button>
                             <button
                                 className={`btn-register ${
-                                    registeredEventIds.includes(selectedEvent.id) ? 'registered' : ''
+                                    registeredEventIds.includes(selectedEvent._id) ? 'registered' : ''
                                 }`}
                                 onClick={() => {
-                                    handleRegisterEvent(selectedEvent.id);
+                                    handleRegisterEvent(selectedEvent._id);
                                     setShowEventDetail(false);
                                 }}
-                                disabled={registeredEventIds.includes(selectedEvent.id) || selectedEvent.availableSeats === 0}
+                                disabled={registeredEventIds.includes(selectedEvent._id) || selectedEvent.available_seats_remaining === 0}
                             >
-                                {registeredEventIds.includes(selectedEvent.id)
+                                {registeredEventIds.includes(selectedEvent._id)
                                     ? '✓ Already Registered'
-                                    : selectedEvent.availableSeats === 0
+                                    : selectedEvent.available_seats_remaining === 0
                                     ? 'Sold Out'
                                     : 'Register Now'
                                 }

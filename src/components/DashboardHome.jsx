@@ -7,24 +7,24 @@ function DashboardHome({ userProfile, registeredEvents, bookedEvents }) {
     };
 
     // Calculate stats
-    const pendingBookings = bookedEvents.filter(b => b.status === 'Pending').length;
-    const confirmedBookings = bookedEvents.filter(b => b.status === 'Confirmed').length;
-    const completedBookings = bookedEvents.filter(b => b.status === 'Completed').length;
-    const totalAmountSpent = bookedEvents.reduce((total, event) => total + event.totalAmount, 0);
+    const pendingBookings = bookedEvents.filter(b => b.status === 'pending').length;
+    const confirmedBookings = bookedEvents.filter(b => b.status === 'approved').length;
+    const completedBookings = 0; // Or based on another logic
+    const totalAmountSpent = 0; // Replace with actual spent if available in future
 
     // Get recent activities (last 5)
     const getRecentActivities = () => {
         const activities = [];
 
-        // Add recent bookings
+        // Add recent bookings (events user organized)
         bookedEvents.slice(-3).forEach((booking, index) => {
             activities.push({
-                id: `booking-${booking.id}`,
+                id: `booking-${booking._id}`,
                 type: 'booking',
-                title: `Booked: ${booking.title}`,
-                date: booking.bookingDate,
+                title: `Organized: ${booking.title}`,
+                date: booking.created_at || booking.date,
                 status: booking.status,
-                timestamp: new Date(booking.bookingDate).getTime(),
+                timestamp: new Date(booking.created_at || booking.date).getTime(),
                 icon: '🎫'
             });
         });
@@ -32,7 +32,7 @@ function DashboardHome({ userProfile, registeredEvents, bookedEvents }) {
         // Add recent registrations
         registeredEvents.slice(-3).forEach((event, index) => {
             activities.push({
-                id: `registered-${event.id}`,
+                id: `registered-${event._id || event.registrationId}`,
                 type: 'registration',
                 title: `Registered: ${event.title}`,
                 date: event.registrationDate,
@@ -73,15 +73,15 @@ function DashboardHome({ userProfile, registeredEvents, bookedEvents }) {
                         <div className="profile-details">
                             <div className="detail-item">
                                 <span className="detail-label">Phone:</span>
-                                <span>{userProfile.phone}</span>
+                                <span>{userProfile.mobile_number || 'N/A'}</span>
                             </div>
                             <div className="detail-item">
                                 <span className="detail-label">Location:</span>
-                                <span>{userProfile.location}</span>
+                                <span>{userProfile.location || 'N/A'}</span>
                             </div>
                             <div className="detail-item">
                                 <span className="detail-label">Member Since:</span>
-                                <span>{formatDate(userProfile.joinDate)}</span>
+                                <span>{userProfile.created_at ? formatDate(userProfile.created_at) : 'N/A'}</span>
                             </div>
                         </div>
                     </div>
@@ -192,7 +192,7 @@ function DashboardHome({ userProfile, registeredEvents, bookedEvents }) {
                 <div className="events-list">
                     {registeredEvents.length > 0 ? (
                         registeredEvents.map(event => (
-                            <div key={event.id} className="event-item">
+                            <div key={event.registrationId || event._id} className="event-item">
                                 <div className="event-main-info">
                                     <h4>{event.title}</h4>
                                     <div className="event-meta">
