@@ -17,7 +17,7 @@ const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 //   )
 // }
 
-const Login = ({ setUserData, credentials }) => {
+const Login = ({ setUserData }) => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   
@@ -77,7 +77,7 @@ const Login = ({ setUserData, credentials }) => {
     showError(e.target, errorMessage);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const formData = {
@@ -104,54 +104,33 @@ const Login = ({ setUserData, credentials }) => {
     try {
       setIsSubmitting(true);
 
-      // Hardcoded authentication credentials
-      const ADMIN_CREDENTIALS = {
-        email: 'admin@gmail.com',
-        password: 'Admin@123'
-      };
+      const response = await fetch('http://localhost:5001/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: formData.email.trim(),
+          password: formData.password
+        })
+      });
 
-      const USER_CREDENTIALS = {
-        email: 'anil@gmail.com',
-        password: 'Anil@123'
-      };
+      const data = await response.json();
 
-      const trimmedEmail = formData.email.trim();
-      const trimmedPassword = formData.password;
-
-      // Check if admin credentials match
-      if (trimmedEmail === ADMIN_CREDENTIALS.email && trimmedPassword === ADMIN_CREDENTIALS.password) {
-        const adminData = {
-          id: 1,
-          email: trimmedEmail,
-          name: 'Admin User',
-          role: 'admin',
-          mobile: '9876543210'
-        };
-
-        console.log('Admin login successful:', adminData);
-        setUserData(adminData);
-        navigate('/admin-dashboard');
-        return;
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.message || 'Invalid email or password');
       }
 
-      // Check if user credentials match
-      if (trimmedEmail === USER_CREDENTIALS.email && trimmedPassword === USER_CREDENTIALS.password) {
-        const userData = {
-          id: 2,
-          email: trimmedEmail,
-          name: 'Anil Kumar',
-          role: 'user',
-          mobile: '9123456789'
-        };
-
-        console.log('User login successful:', userData);
-        setUserData(userData);
-        navigate('/dashboard');
-        return;
+      if (data?.token) {
+        localStorage.setItem('authToken', data.token);
       }
 
-      // Invalid credentials
-      throw new Error('Invalid email or password');
+      if (data?.user) {
+        localStorage.setItem('userData', JSON.stringify(data.user));
+        setUserData(data.user);
+      }
+
+      navigate(data?.user?.role === 'admin' ? '/admin-dashboard' : '/dashboard');
 
     } catch (error) {
       console.error('Error during login:', error);
