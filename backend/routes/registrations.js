@@ -1,13 +1,15 @@
 import express from 'express';
 import { param, validationResult } from 'express-validator';
-import { authMiddleware } from '../middleware/authMiddleware.js';
+import { authMiddleware, adminMiddleware } from '../middleware/authMiddleware.js';
 import {
   registerForEvent,
   getUserRegistrations,
   getEventRegistrations,
   updateRegistration,
   cancelRegistration,
-  getEventStatistics
+  getEventStatistics,
+  adminGetAllRegistrations,
+  adminCancelRegistration
 } from '../controllers/registrationController.js';
 
 const router = express.Router();
@@ -25,7 +27,21 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 
-// Routes
+// ===================== ADMIN ROUTES =====================
+
+// Admin: Get all registrations grouped by event
+router.get('/admin/all', adminMiddleware, adminGetAllRegistrations);
+
+// Admin: Cancel any registration
+router.delete(
+  '/admin/:registrationId/cancel',
+  adminMiddleware,
+  param('registrationId').isMongoId().withMessage('Invalid registration ID'),
+  handleValidationErrors,
+  adminCancelRegistration
+);
+
+// ===================== USER ROUTES =====================
 
 // Register for event (protected)
 router.post(

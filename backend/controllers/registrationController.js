@@ -305,6 +305,77 @@ export async function cancelRegistration(req, res) {
   }
 }
 
+// Admin: Get all registrations (grouped by event)
+export async function adminGetAllRegistrations(req, res) {
+  try {
+    const registrations = await Registration.find()
+      .populate('user_id', 'name email mobile_number')
+      .populate('event_id', 'title date time location category status available_seats')
+      .sort({ created_at: -1 });
+
+    // Group registrations by event
+    const grouped = {};
+    for (const reg of registrations) {
+      if (!reg.event_id) continue; // skip orphaned registrations
+      const eventId = reg.event_id._id.toString();
+      if (!grouped[eventId]) {
+        grouped[eventId] = {
+          eventId,
+          eventTitle: reg.event_id.title,
+          eventDate: reg.event_id.date,
+          eventTime: reg.event_id.time,
+          eventLocation: reg.event_id.location,
+          eventCategory: reg.event_id.category,
+          eventStatus: reg.event_id.status,
+          totalSeats: reg.event_id.available_seats,
+          registrations: []
+        };
+      }
+      grouped[eventId].registrations.push(reg);
+    }
+
+    const groupedArray = Object.values(grouped);
+
+    res.json({
+      success: true,
+      total_registrations: registrations.length,
+      events_count: groupedArray.length,
+      grouped: groupedArray
+    });
+  } catch (error) {
+    console.error('Admin get all registrations error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve registrations',
+      error: error.message
+    });
+  }
+}
+
+// Admin: Cancel any registration
+export async function adminCancelRegistration(req, res) {
+  try {
+    const { registrationId } = req.params;
+
+    const registration = await Registration.findById(registrationId);
+    if (!registration) {
+      return res.status(404).json({ success: false, message: 'Registration not found' });
+    }
+    if (registration.status === 'cancelled') {
+      return res.status(400).json({ success: false, message: 'Registration is already cancelled' });
+    }
+
+    registration.status = 'cancelled';
+    registration.updated_at = new Date();
+    await registration.save();
+
+    res.json({ success: true, message: 'Registration cancelled successfully' });
+  } catch (error) {
+    console.error('Admin cancel registration error:', error);
+    res.status(500).json({ success: false, message: 'Failed to cancel registration', error: error.message });
+  }
+}
+
 // Get event statistics (for admins/organizers)
 export async function getEventStatistics(req, res) {
   try {
