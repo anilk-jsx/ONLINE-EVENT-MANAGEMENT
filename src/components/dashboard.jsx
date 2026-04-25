@@ -299,6 +299,7 @@ function Dashboard() {
                                 registeredEvents={registeredEvents}
                                 bookedEvents={bookedEvents}
                                 handleUpdateRegistration={handleUpdateRegistration}
+                                onProfileUpdate={fetchDashboardData}
                             />
                         } 
                     />

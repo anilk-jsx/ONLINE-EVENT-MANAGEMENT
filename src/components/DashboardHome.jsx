@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import SwipeToPay from './SwipeToPay';
 
-function DashboardHome({ userProfile, registeredEvents, bookedEvents, handleUpdateRegistration }) {
+function DashboardHome({ userProfile, registeredEvents, bookedEvents, handleUpdateRegistration, onProfileUpdate }) {
     const [editingEvent, setEditingEvent] = useState(null);
     const [newSeatCount, setNewSeatCount] = useState(0);
     const [viewingQr, setViewingQr] = useState(null);
+    const [editingProfile, setEditingProfile] = useState(false);
+    const [profileForm, setProfileForm] = useState({});
+    const [profileSaving, setProfileSaving] = useState(false);
 
     const formatDate = (dateString) => {
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -66,6 +69,42 @@ function DashboardHome({ userProfile, registeredEvents, bookedEvents, handleUpda
     const additionalSeats = editingEvent ? newSeatCount - editingEvent.number_of_seats : 0;
     const additionalAmount = editingEvent ? additionalSeats * editingEvent.event_price : 0;
 
+    const handleOpenProfileEdit = () => {
+        setProfileForm({
+            name: userProfile.name || '',
+            mobile_number: userProfile.mobile_number || '',
+            location: userProfile.location || ''
+        });
+        setEditingProfile(true);
+    };
+
+    const handleSaveProfile = async () => {
+        setProfileSaving(true);
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch('http://localhost:5001/api/auth/profile', {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(profileForm)
+            });
+            const data = await response.json();
+            if (data.success) {
+                setEditingProfile(false);
+                if (onProfileUpdate) onProfileUpdate();
+            } else {
+                alert(data.message || 'Failed to update profile');
+            }
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            alert('Failed to update profile');
+        } finally {
+            setProfileSaving(false);
+        }
+    };
+
     return (
         <div className="dashboard-content">
             <div className="dashboard-header">
@@ -102,6 +141,17 @@ function DashboardHome({ userProfile, registeredEvents, bookedEvents, handleUpda
                                 <span>{userProfile.created_at ? formatDate(userProfile.created_at) : 'N/A'}</span>
                             </div>
                         </div>
+                        <button
+                            onClick={handleOpenProfileEdit}
+                            style={{
+                                marginTop: '12px', padding: '8px 20px',
+                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                color: 'white', border: 'none', borderRadius: '10px',
+                                fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer'
+                            }}
+                        >
+                            ✏️ Edit Profile
+                        </button>
                     </div>
                 </div>
             </div>
@@ -385,6 +435,83 @@ function DashboardHome({ userProfile, registeredEvents, bookedEvents, handleUpda
                             <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', fontStyle: 'italic' }}>
                                 Scan this QR code with your phone camera at the event entrance
                             </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Profile Modal */}
+            {editingProfile && (
+                <div className="modal-overlay" onClick={() => setEditingProfile(false)}>
+                    <div className="event-detail-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '450px' }}>
+                        <div className="modal-header">
+                            <h2>Edit Profile</h2>
+                            <button className="close-btn" onClick={() => setEditingProfile(false)}>×</button>
+                        </div>
+                        <div className="modal-content" style={{ padding: '20px 30px 30px' }}>
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{ display: 'block', color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', marginBottom: '6px' }}>Full Name</label>
+                                <input
+                                    type="text"
+                                    value={profileForm.name}
+                                    onChange={(e) => setProfileForm(prev => ({ ...prev, name: e.target.value }))}
+                                    style={{
+                                        width: '100%', padding: '10px 14px', borderRadius: '10px',
+                                        border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)',
+                                        color: 'white', fontSize: '0.95rem', outline: 'none'
+                                    }}
+                                />
+                            </div>
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{ display: 'block', color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', marginBottom: '6px' }}>Mobile Number</label>
+                                <input
+                                    type="tel"
+                                    value={profileForm.mobile_number}
+                                    onChange={(e) => setProfileForm(prev => ({ ...prev, mobile_number: e.target.value }))}
+                                    style={{
+                                        width: '100%', padding: '10px 14px', borderRadius: '10px',
+                                        border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)',
+                                        color: 'white', fontSize: '0.95rem', outline: 'none'
+                                    }}
+                                />
+                            </div>
+                            <div style={{ marginBottom: '20px' }}>
+                                <label style={{ display: 'block', color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', marginBottom: '6px' }}>Location</label>
+                                <input
+                                    type="text"
+                                    value={profileForm.location}
+                                    onChange={(e) => setProfileForm(prev => ({ ...prev, location: e.target.value }))}
+                                    placeholder="City, State"
+                                    style={{
+                                        width: '100%', padding: '10px 14px', borderRadius: '10px',
+                                        border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)',
+                                        color: 'white', fontSize: '0.95rem', outline: 'none'
+                                    }}
+                                />
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button
+                                    onClick={() => setEditingProfile(false)}
+                                    style={{
+                                        flex: 1, padding: '10px', borderRadius: '10px',
+                                        border: '1px solid rgba(255,255,255,0.2)', background: 'transparent',
+                                        color: 'white', cursor: 'pointer', fontSize: '0.9rem'
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleSaveProfile}
+                                    disabled={profileSaving}
+                                    style={{
+                                        flex: 1, padding: '10px', borderRadius: '10px', border: 'none',
+                                        background: 'linear-gradient(135deg, #38ef7d 0%, #11998e 100%)',
+                                        color: 'white', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '600'
+                                    }}
+                                >
+                                    {profileSaving ? 'Saving...' : 'Save Changes'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

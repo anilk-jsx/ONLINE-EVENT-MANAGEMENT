@@ -195,3 +195,95 @@ export async function getAllUsers(req, res) {
     });
   }
 }
+
+// User: Update own profile
+export async function updateProfile(req, res) {
+  try {
+    const userId = req.user.id;
+    const { name, mobile_number, location } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (name) user.name = name;
+    if (mobile_number) user.mobile_number = mobile_number;
+    if (location !== undefined) user.location = location;
+    user.updated_at = new Date();
+
+    await user.save();
+
+    const updatedUser = user.toObject();
+    delete updatedUser.password;
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update profile', error: error.message });
+  }
+}
+
+// Admin: Update any user
+export async function adminUpdateUser(req, res) {
+  try {
+    const { userId } = req.params;
+    const { name, mobile_number, location, role } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (name) user.name = name;
+    if (mobile_number) user.mobile_number = mobile_number;
+    if (location !== undefined) user.location = location;
+    if (role && ['user', 'admin'].includes(role)) user.role = role;
+    user.updated_at = new Date();
+
+    await user.save();
+
+    const updatedUser = user.toObject();
+    delete updatedUser.password;
+
+    res.json({
+      success: true,
+      message: 'User updated successfully',
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error('Admin update user error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update user', error: error.message });
+  }
+}
+
+// Admin: Delete a user
+export async function adminDeleteUser(req, res) {
+  try {
+    const { userId } = req.params;
+    const { Registration, Event } = await import('../config/database.js');
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Delete user's registrations
+    await Registration.deleteMany({ user_id: userId });
+
+    // Delete the user
+    await User.findByIdAndDelete(userId);
+
+    res.json({
+      success: true,
+      message: 'User deleted successfully'
+    });
+  } catch (error) {
+    console.error('Admin delete user error:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete user', error: error.message });
+  }
+}
