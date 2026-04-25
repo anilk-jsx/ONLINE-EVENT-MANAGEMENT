@@ -45,7 +45,7 @@ npm install
 
 Edit `backend/.env`:
 ```env
-PORT=5000
+PORT=5001
 NODE_ENV=development
 JWT_SECRET=your_jwt_secret_key
 MONGODB_URI=mongodb://localhost:27017/event_management
@@ -63,7 +63,7 @@ mongod
 npm run dev
 ```
 
-Server will start on `http://localhost:5000`
+Server will start on `http://localhost:5001`
 
 ## Implemented Features
 
@@ -126,7 +126,7 @@ Use Postman or Thunder Client:
 
 ### 1. Register User
 ```
-POST http://localhost:5000/api/auth/register
+POST http://localhost:5001/api/auth/register
 Content-Type: application/json
 
 {
@@ -141,7 +141,7 @@ Content-Type: application/json
 
 ### 2. Login
 ```
-POST http://localhost:5000/api/auth/login
+POST http://localhost:5001/api/auth/login
 Content-Type: application/json
 
 {
@@ -157,7 +157,7 @@ Authorization: Bearer <token_here>
 
 ### 3. Create Event
 ```
-POST http://localhost:5000/api/events
+POST http://localhost:5001/api/events
 Authorization: Bearer <token>
 Content-Type: application/json
 
@@ -168,7 +168,7 @@ Content-Type: application/json
   "date": "2024-05-15",
   "time": "09:00",
   "location": "Convention Center",
-  "price": 5000,
+  "price": 5001,
   "available_seats": 100,
   "duration": "8 hours"
 }
@@ -177,7 +177,7 @@ Content-Type: application/json
 ## Environment Variables
 
 ```env
-PORT                # Server port (default: 5000)
+PORT                # Server port (default: 5001)
 NODE_ENV            # Environment (development/production)
 JWT_SECRET          # Secret key for JWT signing
 MONGODB_URI         # MongoDB connection string
@@ -216,7 +216,7 @@ MONGODB_URI         # MongoDB connection string
 
 ### Port Already in Use
 - Change PORT in .env file
-- Or kill process using port: `lsof -ti:5000 | xargs kill -9`
+- Or kill process using port: `lsof -ti:5001 | xargs kill -9`
 
 ### JWT Token Issues
 - Token might be expired (7 days)

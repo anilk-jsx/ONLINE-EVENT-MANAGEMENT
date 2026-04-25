@@ -160,7 +160,7 @@ Create `backend/.env` file with:
 
 ```env
 # Server Configuration
-PORT=5000
+PORT=5001
 NODE_ENV=development
 
 # Database Configuration (Choose ONE)
@@ -192,7 +192,7 @@ touch .env  # On Mac/Linux
 # or create manually on Windows
 
 # 4. Add to .env:
-PORT=5000
+PORT=5001
 NODE_ENV=development
 MONGODB_URI=mongodb://localhost:27017/event_management
 JWT_SECRET=<generated_secret_here>
@@ -210,7 +210,7 @@ npm run dev
 # 3. In backend folder, create .env
 
 # 4. Add to .env:
-PORT=5000
+PORT=5001
 NODE_ENV=development
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/event_management?retryWrites=true&w=majority
 JWT_SECRET=<generated_secret_here>
@@ -245,7 +245,7 @@ cd backend
 npm run dev
 
 # Should show:
-# Server running on http://localhost:5000
+# Server running on http://localhost:5001
 # MongoDB connected successfully
 ```
 
@@ -253,7 +253,7 @@ npm run dev
 
 ```bash
 # In another terminal, run:
-curl http://localhost:5000/
+curl http://localhost:5001/
 
 # Should return:
 # {"message":"Event Management API is running"}
@@ -325,7 +325,7 @@ Just start using it!
 
 | Variable | Purpose | Example |
 |----------|---------|---------|
-| `PORT` | Server port | 5000 |
+| `PORT` | Server port | 5001 |
 | `NODE_ENV` | Environment | development / production |
 | `MONGODB_URI` | Database connection | mongodb://... |
 | `JWT_SECRET` | Token signing key | a1b2c3d4... |
@@ -357,7 +357,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 - ✅ `.env` file created in `backend` folder
 - ✅ `MONGODB_URI` added to `.env`
 - ✅ `JWT_SECRET` added to `.env` (random 32+ char string)
-- ✅ `PORT` set to 5000
+- ✅ `PORT` set to 5001
 - ✅ `NODE_ENV` set to development
 - ✅ `.env` added to `.gitignore`
 - ✅ Run `npm run dev` from backend folder

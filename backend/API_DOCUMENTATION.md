@@ -5,7 +5,7 @@ Complete REST API documentation for the Event Management System.
 ## Base URL
 
 ```
-http://localhost:5000/api
+http://localhost:5001/api
 ```
 
 ## Authentication
@@ -115,7 +115,7 @@ Authorization: Bearer <jwt_token>
   "date": "2024-05-15",
   "time": "09:00",
   "location": "Convention Center, City",
-  "price": 5000,
+  "price": 5001,
   "available_seats": 100,
   "duration": "8 hours"
 }
@@ -139,7 +139,7 @@ Authorization: Bearer <jwt_token>
       "name": "John Doe",
       "email": "john@example.com"
     },
-    "price": 5000,
+    "price": 5001,
     "available_seats": 100,
     "duration": "8 hours",
     "created_at": "2024-01-21T10:30:00Z"
@@ -186,7 +186,7 @@ GET /events?category=Technology&search=conference&page=1&limit=10
       "date": "2024-05-15",
       "time": "09:00",
       "location": "Convention Center",
-      "price": 5000,
+      "price": 5001,
       "available_seats": 100
     }
   ],
@@ -227,7 +227,7 @@ GET /events?category=Technology&search=conference&page=1&limit=10
       "name": "John Doe",
       "email": "john@example.com"
     },
-    "price": 5000,
+    "price": 5001,
     "available_seats": 100,
     "registered_count": 45,
     "available_seats_remaining": 55,

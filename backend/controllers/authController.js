@@ -7,6 +7,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 export async function register(req, res) {
   try {
     const { name, email, password, rpassword, mobile_number, role = 'user' } = req.body;
+    const normalizedEmail = email?.toLowerCase().trim();
 
     // Validation
     if (!name || !email || !password || !rpassword || !mobile_number) {
@@ -25,7 +26,7 @@ export async function register(req, res) {
     }
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(409).json({
         success: false,
@@ -40,7 +41,7 @@ export async function register(req, res) {
     // Create user
     const newUser = new User({
       name,
-      email: email.toLowerCase(),
+      email: normalizedEmail,
       mobile_number,
       password: hashedPassword,
       role
@@ -83,6 +84,7 @@ export async function register(req, res) {
 export async function login(req, res) {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = email?.toLowerCase().trim();
 
     // Validation
     if (!email || !password) {
@@ -93,7 +95,7 @@ export async function login(req, res) {
     }
 
     // Find user
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
       return res.status(401).json({
         success: false,

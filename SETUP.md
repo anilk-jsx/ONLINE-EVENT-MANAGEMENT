@@ -43,7 +43,7 @@ npm install
 npm run dev
 ```
 
-Server will start on `http://localhost:5000`
+Server will start on `http://localhost:5001`
 
 ### 3. Frontend Setup (in another terminal)
 
@@ -58,7 +58,7 @@ Frontend will start on `http://localhost:5173`
 
 Update `backend/.env`:
 ```env
-PORT=5000
+PORT=5001
 NODE_ENV=development
 JWT_SECRET=your_jwt_secret_key
 MONGODB_URI=mongodb://localhost:27017/event_management
@@ -108,7 +108,7 @@ Body: {
   "date": "2024-05-15",
   "time": "09:00",
   "location": "Convention Center",
-  "price": 5000,
+  "price": 5001,
   "available_seats": 100,
   "duration": "8 hours"
 }

@@ -163,7 +163,7 @@ JWT_SECRET=your_secret_key_here
 npm run dev
 ```
 
-Server starts on `http://localhost:5000`
+Server starts on `http://localhost:5001`
 
 ## 📋 Dependencies
 
@@ -182,10 +182,10 @@ Server starts on `http://localhost:5000`
 ## 🔄 Frontend Integration
 
 The registration form (`src/components/register.jsx`) has been updated to call:
-- `POST http://localhost:5000/api/auth/register`
+- `POST http://localhost:5001/api/auth/register`
 
 Ready for login form integration to:
-- `POST http://localhost:5000/api/auth/login`
+- `POST http://localhost:5001/api/auth/login`
 
 ## 📚 Documentation Files
 
