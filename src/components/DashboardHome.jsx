@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
+import SwipeToPay from './SwipeToPay';
 
-function DashboardHome({ userProfile, registeredEvents, bookedEvents }) {
+function DashboardHome({ userProfile, registeredEvents, bookedEvents, handleUpdateRegistration }) {
+    const [editingEvent, setEditingEvent] = useState(null);
+    const [newSeatCount, setNewSeatCount] = useState(0);
+
     const formatDate = (dateString) => {
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
         return new Date(dateString).toLocaleDateString(undefined, options);
@@ -10,7 +14,7 @@ function DashboardHome({ userProfile, registeredEvents, bookedEvents }) {
     const pendingBookings = bookedEvents.filter(b => b.status === 'pending').length;
     const confirmedBookings = bookedEvents.filter(b => b.status === 'approved').length;
     const completedBookings = 0; // Or based on another logic
-    const totalAmountSpent = 0; // Replace with actual spent if available in future
+    const totalAmountSpent = registeredEvents.reduce((sum, e) => sum + (e.total_amount || 0), 0);
 
     // Get recent activities (last 5)
     const getRecentActivities = () => {
@@ -47,6 +51,19 @@ function DashboardHome({ userProfile, registeredEvents, bookedEvents }) {
     };
 
     const recentActivities = getRecentActivities();
+
+    const handleOpenEdit = (event) => {
+        setEditingEvent(event);
+        setNewSeatCount(event.number_of_seats + 1); // Start at current + 1
+    };
+
+    const handleCloseEdit = () => {
+        setEditingEvent(null);
+        setNewSeatCount(0);
+    };
+
+    const additionalSeats = editingEvent ? newSeatCount - editingEvent.number_of_seats : 0;
+    const additionalAmount = editingEvent ? additionalSeats * editingEvent.event_price : 0;
 
     return (
         <div className="dashboard-content">
@@ -202,8 +219,25 @@ function DashboardHome({ userProfile, registeredEvents, bookedEvents }) {
                                             {event.category}
                                         </span>
                                     </div>
+                                    <div className="event-meta" style={{ marginTop: '8px' }}>
+                                        <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem' }}>
+                                            🪑 {event.number_of_seats} seat(s)
+                                        </span>
+                                        <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem' }}>
+                                            💰 ₹{(event.total_amount || 0).toLocaleString('en-IN')}
+                                        </span>
+                                    </div>
                                 </div>
-                                <div className="event-status">
+                                <div className="event-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    {event.status !== 'cancelled' && (
+                                        <button 
+                                            className="edit-registration-btn"
+                                            onClick={() => handleOpenEdit(event)}
+                                            title="Add more seats"
+                                        >
+                                            ✏️ Edit
+                                        </button>
+                                    )}
                                     <span className={`status-badge ${event.status.toLowerCase()}`}>
                                         {event.status}
                                     </span>
@@ -215,6 +249,80 @@ function DashboardHome({ userProfile, registeredEvents, bookedEvents }) {
                     )}
                 </div>
             </div>
+
+            {/* Edit Registration Modal */}
+            {editingEvent && (
+                <div className="modal-overlay" onClick={handleCloseEdit}>
+                    <div className="event-detail-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2>Edit Registration</h2>
+                            <button className="close-btn" onClick={handleCloseEdit}>×</button>
+                        </div>
+                        <div className="modal-content">
+                            <h3 style={{ color: 'white', marginBottom: '15px' }}>{editingEvent.title}</h3>
+                            
+                            <div style={{ background: 'rgba(0,0,0,0.2)', padding: '15px', borderRadius: '10px', marginBottom: '20px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: 'rgba(255,255,255,0.7)' }}>
+                                    <span>Current Seats:</span>
+                                    <span style={{ color: 'white', fontWeight: '600' }}>{editingEvent.number_of_seats}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.7)' }}>
+                                    <span>Current Amount Paid:</span>
+                                    <span style={{ color: 'white', fontWeight: '600' }}>₹{(editingEvent.total_amount || 0).toLocaleString('en-IN')}</span>
+                                </div>
+                            </div>
+
+                            <div className="form-group" style={{ marginBottom: '20px' }}>
+                                <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255, 255, 255, 0.8)' }}>
+                                    New Total Seats (min: {editingEvent.number_of_seats + 1})
+                                </label>
+                                <input 
+                                    type="number" 
+                                    min={editingEvent.number_of_seats + 1} 
+                                    value={newSeatCount} 
+                                    onChange={(e) => {
+                                        const val = parseInt(e.target.value) || editingEvent.number_of_seats + 1;
+                                        setNewSeatCount(Math.max(editingEvent.number_of_seats + 1, val));
+                                    }}
+                                    style={{
+                                        width: '100%', padding: '12px', borderRadius: '8px', 
+                                        border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)',
+                                        color: 'white', fontSize: '1rem'
+                                    }}
+                                />
+                            </div>
+                            
+                            <div style={{ background: 'rgba(0,0,0,0.2)', padding: '15px', borderRadius: '10px', marginBottom: '20px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: 'rgba(255,255,255,0.7)' }}>
+                                    <span>Additional Seats:</span>
+                                    <span style={{ color: 'white', fontWeight: '600' }}>+{additionalSeats}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: 'rgba(255,255,255,0.7)' }}>
+                                    <span>Price per Seat:</span>
+                                    <span style={{ color: 'white' }}>₹{editingEvent.event_price.toLocaleString('en-IN')}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '10px', fontWeight: 'bold', fontSize: '1.2rem', color: 'white' }}>
+                                    <span>Additional Payment:</span>
+                                    <span style={{ color: '#ff4d6d' }}>₹{additionalAmount.toLocaleString('en-IN')}</span>
+                                </div>
+                            </div>
+
+                            {additionalSeats > 0 && (
+                                <SwipeToPay 
+                                    amount={additionalAmount}
+                                    disabled={additionalSeats <= 0}
+                                    onPaymentComplete={() => {
+                                        setTimeout(() => {
+                                            handleUpdateRegistration(editingEvent.registrationId, newSeatCount);
+                                            handleCloseEdit();
+                                        }, 1000);
+                                    }}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

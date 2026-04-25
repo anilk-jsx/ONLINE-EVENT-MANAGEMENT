@@ -47,7 +47,10 @@ function Dashboard() {
                     ...r.event_id,
                     registrationDate: r.created_at,
                     status: r.status,
-                    registrationId: r._id
+                    registrationId: r._id,
+                    number_of_seats: r.number_of_seats || 1,
+                    total_amount: r.total_amount || 0,
+                    event_price: r.event_id?.price || 0
                 }));
                 setRegisteredEvents(mappedRegistrations);
                 setRegisteredEventIds(mappedRegistrations.map(r => r._id));
@@ -137,6 +140,30 @@ function Dashboard() {
         }
     };
 
+    const handleUpdateRegistration = async (registrationId, newNumberOfSeats) => {
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch(`http://localhost:5001/api/registrations/${registrationId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ number_of_seats: newNumberOfSeats })
+            });
+            const data = await response.json();
+            if (data.success) {
+                fetchDashboardData();
+                alert(data.message);
+            } else {
+                alert(data.message || 'Failed to update registration');
+            }
+        } catch (error) {
+            console.error('Error updating registration:', error);
+            alert('Failed to update registration');
+        }
+    };
+
     // Sidebar component with routing
     const SidebarWithRouter = () => {
         const location = useLocation();
@@ -200,6 +227,7 @@ function Dashboard() {
                                 userProfile={userProfile}
                                 registeredEvents={registeredEvents}
                                 bookedEvents={bookedEvents}
+                                handleUpdateRegistration={handleUpdateRegistration}
                             />
                         } 
                     />

@@ -469,6 +469,24 @@
   font-style: italic;
 }
 
+.edit-registration-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.edit-registration-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+}
+
 .registered-events-section h2 {
   color: white;
   font-size: 2rem;
@@ -524,6 +542,8 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
+  color: white;
+  background-color: #38ef7d;
 }
 
 .event-category.technology {
@@ -542,6 +562,7 @@
   font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
+  color: white;
 }
 
 .status-badge.confirmed {

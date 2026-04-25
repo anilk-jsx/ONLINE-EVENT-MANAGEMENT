@@ -157,6 +157,106 @@ export async function getEventRegistrations(req, res) {
   }
 }
 
+// Update registration (increase seats only)
+export async function updateRegistration(req, res) {
+  try {
+    const { registrationId } = req.params;
+    const { number_of_seats } = req.body;
+    const userId = req.user.id;
+
+    if (!number_of_seats || number_of_seats < 1) {
+      return res.status(400).json({
+        success: false,
+        message: 'number_of_seats is required and must be at least 1'
+      });
+    }
+
+    const registration = await Registration.findById(registrationId);
+    if (!registration) {
+      return res.status(404).json({
+        success: false,
+        message: 'Registration not found'
+      });
+    }
+
+    // Check if user is owner
+    if (registration.user_id.toString() !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied'
+      });
+    }
+
+    if (registration.status === 'cancelled') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot update a cancelled registration'
+      });
+    }
+
+    const newSeats = Number(number_of_seats);
+
+    // Only allow increasing seats
+    if (newSeats <= registration.number_of_seats) {
+      return res.status(400).json({
+        success: false,
+        message: `You can only increase the number of seats. Current: ${registration.number_of_seats}`
+      });
+    }
+
+    const additionalSeats = newSeats - registration.number_of_seats;
+
+    // Check if event has enough remaining seats
+    const event = await Event.findById(registration.event_id);
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: 'Associated event not found'
+      });
+    }
+
+    const aggregations = await Registration.aggregate([
+      { $match: { event_id: registration.event_id, status: { $ne: 'cancelled' } } },
+      { $group: { _id: null, totalSeats: { $sum: '$number_of_seats' } } }
+    ]);
+    const currentlyBooked = aggregations.length > 0 ? aggregations[0].totalSeats : 0;
+    const remainingSeats = event.available_seats - currentlyBooked;
+
+    if (additionalSeats > remainingSeats) {
+      return res.status(400).json({
+        success: false,
+        message: `Not enough seats available. Remaining seats: ${remainingSeats}`
+      });
+    }
+
+    // Calculate the additional amount for the extra seats
+    const additionalAmount = event.price * additionalSeats;
+
+    // Update registration
+    registration.number_of_seats = newSeats;
+    registration.total_amount = event.price * newSeats;
+    registration.updated_at = new Date();
+    await registration.save();
+
+    await registration.populate('event_id');
+    await registration.populate('user_id', 'name email mobile_number');
+
+    res.json({
+      success: true,
+      message: `Successfully added ${additionalSeats} more seat(s). Additional payment: ₹${additionalAmount}`,
+      registration,
+      additional_amount: additionalAmount
+    });
+  } catch (error) {
+    console.error('Update registration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update registration',
+      error: error.message
+    });
+  }
+}
+
 // Cancel registration
 export async function cancelRegistration(req, res) {
   try {

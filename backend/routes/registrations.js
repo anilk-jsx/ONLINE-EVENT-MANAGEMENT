@@ -5,6 +5,7 @@ import {
   registerForEvent,
   getUserRegistrations,
   getEventRegistrations,
+  updateRegistration,
   cancelRegistration,
   getEventStatistics
 } from '../controllers/registrationController.js';
@@ -58,6 +59,15 @@ router.get(
   param('eventId').isMongoId().withMessage('Invalid event ID'),
   handleValidationErrors,
   getEventStatistics
+);
+
+// Update registration - increase seats (protected)
+router.put(
+  '/:registrationId',
+  authMiddleware,
+  param('registrationId').isMongoId().withMessage('Invalid registration ID'),
+  handleValidationErrors,
+  updateRegistration
 );
 
 // Cancel registration (protected)
