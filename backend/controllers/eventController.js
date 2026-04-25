@@ -529,12 +529,85 @@ export async function adminUpdateEvent(req, res) {
     const registrationCount = await Registration.countDocuments({ event_id: eventId, status: { $ne: 'cancelled' } });
 
     res.json({
-      success: true,
       message: 'Event updated successfully',
       event: { ...event.toObject(), registered_count: registrationCount }
     });
   } catch (error) {
     console.error('Admin update event error:', error);
     res.status(500).json({ success: false, message: 'Failed to update event', error: error.message });
+  }
+}
+
+// Admin: Dashboard summary stats + recent activity
+export async function adminGetStats(req, res) {
+  try {
+    const [totalUsers, totalEvents, pendingEvents, approvedEvents, rejectedEvents,
+      totalRegistrations, activeRegistrations, cancelledRegistrations,
+      recentEvents, recentRegistrations] = await Promise.all([
+      User.countDocuments(),
+      Event.countDocuments(),
+      Event.countDocuments({ status: 'pending' }),
+      Event.countDocuments({ status: 'approved' }),
+      Event.countDocuments({ status: 'rejected' }),
+      Registration.countDocuments(),
+      Registration.countDocuments({ status: 'registered' }),
+      Registration.countDocuments({ status: 'cancelled' }),
+      // 5 most recent events
+      Event.find().sort({ created_at: -1 }).limit(5)
+        .populate('organizer_id', 'name'),
+      // 5 most recent registrations
+      Registration.find().sort({ created_at: -1 }).limit(5)
+        .populate('user_id', 'name')
+        .populate('event_id', 'title')
+    ]);
+
+    // Revenue: sum of total_amount for active registrations
+    const revenueAgg = await Registration.aggregate([
+      { $match: { status: 'registered' } },
+      { $group: { _id: null, total: { $sum: '$total_amount' } } }
+    ]);
+    const totalRevenue = revenueAgg.length > 0 ? revenueAgg[0].total : 0;
+
+    // Build recent activity feed
+    const activity = [];
+    for (const ev of recentEvents) {
+      activity.push({
+        type: 'event',
+        icon: ev.status === 'approved' ? '✅' : ev.status === 'pending' ? '⏳' : '❌',
+        text: `Event "${ev.title}" ${ev.status === 'pending' ? 'submitted for review' : ev.status}`,
+        time: ev.created_at
+      });
+    }
+    for (const reg of recentRegistrations) {
+      if (!reg.user_id || !reg.event_id) continue;
+      activity.push({
+        type: 'registration',
+        icon: '🎫',
+        text: `${reg.user_id.name} registered for "${reg.event_id.title}"`,
+        time: reg.created_at
+      });
+    }
+    // Sort combined activity by time desc, take latest 8
+    activity.sort((a, b) => new Date(b.time) - new Date(a.time));
+    const recentActivity = activity.slice(0, 8);
+
+    res.json({
+      success: true,
+      stats: {
+        totalUsers,
+        totalEvents,
+        pendingEvents,
+        approvedEvents,
+        rejectedEvents,
+        totalRegistrations,
+        activeRegistrations,
+        cancelledRegistrations,
+        totalRevenue
+      },
+      recentActivity
+    });
+  } catch (error) {
+    console.error('Admin get stats error:', error);
+    res.status(500).json({ success: false, message: 'Failed to retrieve stats', error: error.message });
   }
 }

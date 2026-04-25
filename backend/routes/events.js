@@ -15,7 +15,8 @@ import {
   rejectEvent,
   adminCreateEvent,
   adminDeleteEvent,
-  adminUpdateEvent
+  adminUpdateEvent,
+  adminGetStats
 } from '../controllers/eventController.js';
 
 const router = express.Router();
@@ -88,6 +89,9 @@ router.get('/upcoming', getUpcomingEvents);
 router.get('/my-events', authMiddleware, getMyEvents);
 
 // ===================== ADMIN ROUTES =====================
+
+// Admin: Dashboard summary stats
+router.get('/admin/stats', adminMiddleware, adminGetStats);
 
 // Get all events for admin
 router.get('/admin/all', adminMiddleware, getAllEventsAdmin);
