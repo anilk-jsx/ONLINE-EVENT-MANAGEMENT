@@ -159,17 +159,31 @@ export async function updateEvent(req, res) {
       });
     }
 
-    // Update fields
-    if (title) event.title = title;
-    if (description) event.description = description;
-    if (category) event.category = category;
-    if (date) event.date = date;
-    if (time) event.time = time;
-    if (location) event.location = location;
-    if (price !== undefined) event.price = price;
-    if (available_seats) event.available_seats = available_seats;
-    if (duration) event.duration = duration;
-    if (event_type) event.event_type = event_type;
+    // If event is approved, only allow price change
+    if (event.status === 'approved') {
+      if (price !== undefined) event.price = price;
+      // Reject any other field changes for approved events
+      const restrictedFields = ['title', 'description', 'category', 'date', 'time', 'location', 'available_seats', 'duration', 'event_type'];
+      const attemptedChanges = restrictedFields.filter(f => req.body[f] !== undefined);
+      if (attemptedChanges.length > 0 && price === undefined) {
+        return res.status(400).json({
+          success: false,
+          message: 'This event is already approved. You can only change the ticket price.'
+        });
+      }
+    } else {
+      // Event is pending or rejected — allow all field updates
+      if (title) event.title = title;
+      if (description !== undefined) event.description = description;
+      if (category) event.category = category;
+      if (date) event.date = date;
+      if (time) event.time = time;
+      if (location) event.location = location;
+      if (price !== undefined) event.price = price;
+      if (available_seats) event.available_seats = available_seats;
+      if (duration) event.duration = duration;
+      if (event_type) event.event_type = event_type;
+    }
 
     event.updated_at = new Date();
     await event.save();

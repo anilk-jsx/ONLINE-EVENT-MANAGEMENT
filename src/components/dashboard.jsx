@@ -164,6 +164,33 @@ function Dashboard() {
         }
     };
 
+    const handleEditEvent = async (eventId, updatedData) => {
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch(`http://localhost:5001/api/events/${eventId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedData)
+            });
+            const data = await response.json();
+            if (data.success) {
+                fetchDashboardData();
+                alert('Event updated successfully!');
+                return true;
+            } else {
+                alert(data.message || 'Failed to update event');
+                return false;
+            }
+        } catch (error) {
+            console.error('Error updating event:', error);
+            alert('Failed to update event');
+            return false;
+        }
+    };
+
     // Sidebar component with routing
     const SidebarWithRouter = () => {
         const location = useLocation();
@@ -247,6 +274,7 @@ function Dashboard() {
                             <BookEvents 
                                 bookedEvents={bookedEvents}
                                 setShowBookingForm={setShowBookingForm}
+                                handleEditEvent={handleEditEvent}
                             />
                         } 
                     />
