@@ -14,7 +14,8 @@ import {
   approveEvent,
   rejectEvent,
   adminCreateEvent,
-  adminDeleteEvent
+  adminDeleteEvent,
+  adminUpdateEvent
 } from '../controllers/eventController.js';
 
 const router = express.Router();
@@ -111,6 +112,15 @@ router.put(
 
 // Admin create event (auto-approved)
 router.post('/admin/create', adminMiddleware, adminCreateEvent);
+
+// Admin update event (full access)
+router.put(
+  '/admin/:eventId',
+  adminMiddleware,
+  param('eventId').isMongoId().withMessage('Invalid event ID'),
+  handleValidationErrors,
+  adminUpdateEvent
+);
 
 // Admin delete event
 router.delete(

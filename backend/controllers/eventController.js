@@ -499,3 +499,42 @@ export async function adminDeleteEvent(req, res) {
     res.status(500).json({ success: false, message: 'Failed to delete event', error: error.message });
   }
 }
+
+// Admin: Update any event (full access)
+export async function adminUpdateEvent(req, res) {
+  try {
+    const { eventId } = req.params;
+    const { title, description, category, date, time, location, price, available_seats, duration, event_type } = req.body;
+
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+
+    if (title) event.title = title;
+    if (description !== undefined) event.description = description;
+    if (category) event.category = category;
+    if (date) event.date = date;
+    if (time) event.time = time;
+    if (location) event.location = location;
+    if (price !== undefined) event.price = price;
+    if (available_seats) event.available_seats = available_seats;
+    if (duration) event.duration = duration;
+    if (event_type) event.event_type = event_type;
+    event.updated_at = new Date();
+
+    await event.save();
+    await event.populate('organizer_id', 'name email mobile_number');
+
+    const registrationCount = await Registration.countDocuments({ event_id: eventId, status: { $ne: 'cancelled' } });
+
+    res.json({
+      success: true,
+      message: 'Event updated successfully',
+      event: { ...event.toObject(), registered_count: registrationCount }
+    });
+  } catch (error) {
+    console.error('Admin update event error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update event', error: error.message });
+  }
+}

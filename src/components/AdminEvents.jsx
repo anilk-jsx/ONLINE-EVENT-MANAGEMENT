@@ -12,6 +12,9 @@ function AdminEvents() {
         time: '', location: '', price: '', available_seats: '',
         duration: '', event_type: 'public'
     });
+    const [editingEvent, setEditingEvent] = useState(null);  // holds the event being edited
+    const [editForm, setEditForm] = useState({});
+    const [saving, setSaving] = useState(false);
 
     const formatDate = (dateString) => {
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -84,6 +87,65 @@ function AdminEvents() {
         }
     };
 
+    // Open edit modal pre-populated with event data
+    const handleEditEvent = (event) => {
+        const dateStr = event.date ? new Date(event.date).toISOString().split('T')[0] : '';
+        setEditForm({
+            title: event.title || '',
+            description: event.description || '',
+            category: event.category || 'Other',
+            date: dateStr,
+            time: event.time || '',
+            location: event.location || '',
+            price: event.price !== undefined ? String(event.price) : '0',
+            available_seats: String(event.available_seats || ''),
+            duration: event.duration || '',
+            event_type: event.event_type || 'public'
+        });
+        setEditingEvent(event);
+    };
+
+    // Save edits via PUT /api/events/admin/:id
+    const handleUpdateEvent = async (e) => {
+        e.preventDefault();
+        if (!editForm.title || !editForm.date || !editForm.time || !editForm.location || !editForm.available_seats || !editForm.duration) {
+            alert('Please fill in all required fields');
+            return;
+        }
+        setSaving(true);
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch(`http://localhost:5001/api/events/admin/${editingEvent._id}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ...editForm,
+                    price: Number(editForm.price) || 0,
+                    available_seats: Number(editForm.available_seats)
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                setEvents(prev => prev.map(ev =>
+                    ev._id === editingEvent._id
+                        ? { ...data.event, registered_count: ev.registered_count }
+                        : ev
+                ));
+                setEditingEvent(null);
+            } else {
+                alert(data.message || 'Failed to update event');
+            }
+        } catch (error) {
+            console.error('Error updating event:', error);
+            alert('Failed to update event');
+        } finally {
+            setSaving(false);
+        }
+    };
+
     // Delete event
     const handleDeleteEvent = async (eventId, eventTitle) => {
         if (!confirm(`Are you sure you want to delete "${eventTitle}"? This will also remove all registrations.`)) return;
@@ -138,6 +200,165 @@ function AdminEvents() {
 
     return (
         <div className="admin-content">
+            {/* Edit Event Modal */}
+            {editingEvent && (
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: 1000,
+                    background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    padding: '20px'
+                }}>
+                    <div style={{
+                        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        borderRadius: '20px', padding: '32px',
+                        width: '100%', maxWidth: '700px',
+                        maxHeight: '90vh', overflowY: 'auto',
+                        boxShadow: '0 25px 60px rgba(0,0,0,0.6)'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                            <h3 style={{ color: 'white', fontSize: '1.2rem', margin: 0 }}>✏️ Edit Event</h3>
+                            <button
+                                onClick={() => setEditingEvent(null)}
+                                style={{
+                                    background: 'rgba(255,255,255,0.1)', border: 'none',
+                                    color: 'white', width: '32px', height: '32px',
+                                    borderRadius: '50%', cursor: 'pointer', fontSize: '1rem',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                }}
+                            >✕</button>
+                        </div>
+                        <form onSubmit={handleUpdateEvent}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div style={{ gridColumn: '1 / -1' }}>
+                                    <label style={labelStyle}>Event Title *</label>
+                                    <input
+                                        type="text"
+                                        value={editForm.title}
+                                        onChange={(e) => setEditForm(p => ({ ...p, title: e.target.value }))}
+                                        style={inputStyle} required
+                                    />
+                                </div>
+                                <div style={{ gridColumn: '1 / -1' }}>
+                                    <label style={labelStyle}>Description</label>
+                                    <textarea
+                                        value={editForm.description}
+                                        onChange={(e) => setEditForm(p => ({ ...p, description: e.target.value }))}
+                                        rows="3"
+                                        style={{ ...inputStyle, resize: 'vertical' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={labelStyle}>Category</label>
+                                    <select
+                                        value={editForm.category}
+                                        onChange={(e) => setEditForm(p => ({ ...p, category: e.target.value }))}
+                                        style={{ ...inputStyle, background: 'rgba(255,255,255,0.08)' }}
+                                    >
+                                        {['Technology', 'Marketing', 'Education', 'Business', 'Programming', 'Other'].map(c => (
+                                            <option key={c} value={c} style={{ background: '#1a1a2e' }}>{c}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style={labelStyle}>Event Type</label>
+                                    <select
+                                        value={editForm.event_type}
+                                        onChange={(e) => setEditForm(p => ({ ...p, event_type: e.target.value }))}
+                                        style={{ ...inputStyle, background: 'rgba(255,255,255,0.08)' }}
+                                    >
+                                        <option value="public" style={{ background: '#1a1a2e' }}>Public</option>
+                                        <option value="private" style={{ background: '#1a1a2e' }}>Private</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style={labelStyle}>Date *</label>
+                                    <input
+                                        type="date"
+                                        value={editForm.date}
+                                        onChange={(e) => setEditForm(p => ({ ...p, date: e.target.value }))}
+                                        style={inputStyle} required
+                                    />
+                                </div>
+                                <div>
+                                    <label style={labelStyle}>Time *</label>
+                                    <input
+                                        type="time"
+                                        value={editForm.time}
+                                        onChange={(e) => setEditForm(p => ({ ...p, time: e.target.value }))}
+                                        style={inputStyle} required
+                                    />
+                                </div>
+                                <div>
+                                    <label style={labelStyle}>Location *</label>
+                                    <input
+                                        type="text"
+                                        value={editForm.location}
+                                        onChange={(e) => setEditForm(p => ({ ...p, location: e.target.value }))}
+                                        style={inputStyle} required
+                                    />
+                                </div>
+                                <div>
+                                    <label style={labelStyle}>Duration *</label>
+                                    <input
+                                        type="text"
+                                        value={editForm.duration}
+                                        onChange={(e) => setEditForm(p => ({ ...p, duration: e.target.value }))}
+                                        placeholder="e.g. 2 hours"
+                                        style={inputStyle} required
+                                    />
+                                </div>
+                                <div>
+                                    <label style={labelStyle}>Available Seats *</label>
+                                    <input
+                                        type="number"
+                                        value={editForm.available_seats}
+                                        onChange={(e) => setEditForm(p => ({ ...p, available_seats: e.target.value }))}
+                                        min="1" style={inputStyle} required
+                                    />
+                                </div>
+                                <div>
+                                    <label style={labelStyle}>Price (₹)</label>
+                                    <input
+                                        type="number"
+                                        value={editForm.price}
+                                        onChange={(e) => setEditForm(p => ({ ...p, price: e.target.value }))}
+                                        min="0" style={inputStyle}
+                                    />
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', marginTop: '24px', justifyContent: 'flex-end' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setEditingEvent(null)}
+                                    style={{
+                                        padding: '10px 24px', borderRadius: '10px',
+                                        border: '1px solid rgba(255,255,255,0.2)',
+                                        background: 'transparent', color: 'white',
+                                        cursor: 'pointer', fontSize: '0.9rem'
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={saving}
+                                    style={{
+                                        padding: '10px 28px', borderRadius: '10px', border: 'none',
+                                        background: saving
+                                            ? 'rgba(255,255,255,0.1)'
+                                            : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                        color: 'white', cursor: saving ? 'not-allowed' : 'pointer',
+                                        fontSize: '0.9rem', fontWeight: '600', transition: 'all 0.3s'
+                                    }}
+                                >
+                                    {saving ? 'Saving...' : '✓ Save Changes'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
             <div className="admin-header">
                 <h1>Events Management</h1>
                 <p>View all events and their details</p>
@@ -369,13 +590,34 @@ function AdminEvents() {
                                         </span>
                                     </div>
                                 </div>
-                                <button
-                                    className="btn-reject"
-                                    onClick={() => handleDeleteEvent(event._id, event.title)}
-                                    style={{ padding: '6px 14px', fontSize: '0.8rem' }}
-                                >
-                                    🗑️ Delete
-                                </button>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button
+                                        onClick={() => handleEditEvent(event)}
+                                        style={{
+                                            padding: '6px 14px', fontSize: '0.8rem',
+                                            borderRadius: '8px', border: '1px solid rgba(102,126,234,0.5)',
+                                            background: 'rgba(102,126,234,0.15)', color: '#a0aec0',
+                                            cursor: 'pointer', transition: 'all 0.2s'
+                                        }}
+                                        onMouseEnter={e => {
+                                            e.currentTarget.style.background = 'rgba(102,126,234,0.35)';
+                                            e.currentTarget.style.color = 'white';
+                                        }}
+                                        onMouseLeave={e => {
+                                            e.currentTarget.style.background = 'rgba(102,126,234,0.15)';
+                                            e.currentTarget.style.color = '#a0aec0';
+                                        }}
+                                    >
+                                        ✏️ Edit
+                                    </button>
+                                    <button
+                                        className="btn-reject"
+                                        onClick={() => handleDeleteEvent(event._id, event.title)}
+                                        style={{ padding: '6px 14px', fontSize: '0.8rem' }}
+                                    >
+                                        🗑️ Delete
+                                    </button>
+                                </div>
                             </div>
                             <div className="event-grid">
                                 <div className="event-info-column">
