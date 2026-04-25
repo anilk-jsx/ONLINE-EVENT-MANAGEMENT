@@ -1,5 +1,6 @@
 import { Registration, Event, User } from '../config/database.js';
 import mongoose from 'mongoose';
+import crypto from 'crypto';
 
 // Register user for an event
 export async function registerForEvent(req, res) {
@@ -55,13 +56,17 @@ export async function registerForEvent(req, res) {
     // Calculate total amount
     const total_amount = event.price * Number(number_of_seats);
 
+    // Generate unique QR token
+    const qr_token = crypto.randomUUID();
+
     // Create registration
     const registration = new Registration({
       user_id: userId,
       event_id: eventId,
       status: 'registered',
       number_of_seats: Number(number_of_seats),
-      total_amount
+      total_amount,
+      qr_token
     });
 
     await registration.save();
@@ -73,7 +78,8 @@ export async function registerForEvent(req, res) {
     res.status(201).json({
       success: true,
       message: 'Successfully registered for event',
-      registration
+      registration,
+      qr_token
     });
   } catch (error) {
     console.error('Register for event error:', error);

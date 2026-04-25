@@ -50,7 +50,8 @@ function Dashboard() {
                     registrationId: r._id,
                     number_of_seats: r.number_of_seats || 1,
                     total_amount: r.total_amount || 0,
-                    event_price: r.event_id?.price || 0
+                    event_price: r.event_id?.price || 0,
+                    qr_token: r.qr_token
                 }));
                 setRegisteredEvents(mappedRegistrations);
                 setRegisteredEventIds(mappedRegistrations.map(r => r._id));
@@ -128,8 +129,8 @@ function Dashboard() {
                 const data = await response.json();
                 if (data.success) {
                     setRegisteredEventIds([...registeredEventIds, eventId]);
-                    fetchDashboardData(); // Refresh data to update available seats and registered events list
-                    alert('Successfully registered for the event!');
+                    fetchDashboardData();
+                    return { success: true, qr_token: data.qr_token };
                 } else {
                     alert(data.message || 'Failed to register');
                 }

@@ -4,6 +4,7 @@ import SwipeToPay from './SwipeToPay';
 function DashboardHome({ userProfile, registeredEvents, bookedEvents, handleUpdateRegistration }) {
     const [editingEvent, setEditingEvent] = useState(null);
     const [newSeatCount, setNewSeatCount] = useState(0);
+    const [viewingQr, setViewingQr] = useState(null);
 
     const formatDate = (dateString) => {
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -229,6 +230,16 @@ function DashboardHome({ userProfile, registeredEvents, bookedEvents, handleUpda
                                     </div>
                                 </div>
                                 <div className="event-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    {event.qr_token && (
+                                        <button 
+                                            className="edit-registration-btn"
+                                            style={{ background: 'linear-gradient(135deg, #38ef7d 0%, #11998e 100%)' }}
+                                            onClick={() => setViewingQr(event)}
+                                            title="View QR Code"
+                                        >
+                                            📱 QR
+                                        </button>
+                                    )}
                                     {event.status !== 'cancelled' && (
                                         <button 
                                             className="edit-registration-btn"
@@ -319,6 +330,61 @@ function DashboardHome({ userProfile, registeredEvents, bookedEvents, handleUpda
                                     }}
                                 />
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* QR Code Viewing Modal */}
+            {viewingQr && (
+                <div className="modal-overlay" onClick={() => setViewingQr(null)}>
+                    <div className="event-detail-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '420px' }}>
+                        <div className="modal-header">
+                            <h2>Your Event Ticket</h2>
+                            <button className="close-btn" onClick={() => setViewingQr(null)}>×</button>
+                        </div>
+                        <div className="modal-content" style={{ textAlign: 'center', padding: '20px 30px 30px' }}>
+                            <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '20px', fontSize: '0.95rem' }}>
+                                <strong style={{ color: 'white' }}>{viewingQr.title}</strong>
+                            </p>
+
+                            <div style={{
+                                display: 'inline-block', padding: '20px',
+                                background: 'white', borderRadius: '16px', marginBottom: '20px'
+                            }}>
+                                <img
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${window.location.origin}/verify/${viewingQr.qr_token}`)}`}
+                                    alt="Event QR Code"
+                                    width="200" height="200"
+                                    style={{ display: 'block' }}
+                                />
+                            </div>
+
+                            <div style={{
+                                background: 'rgba(0,0,0,0.2)', padding: '15px',
+                                borderRadius: '10px', marginBottom: '15px', textAlign: 'left'
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: 'rgba(255,255,255,0.7)' }}>
+                                    <span>📅 Date:</span>
+                                    <span style={{ color: 'white' }}>{formatDate(viewingQr.date)} at {viewingQr.time}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: 'rgba(255,255,255,0.7)' }}>
+                                    <span>📍 Location:</span>
+                                    <span style={{ color: 'white' }}>{viewingQr.location}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: 'rgba(255,255,255,0.7)' }}>
+                                    <span>🪑 Seats:</span>
+                                    <span style={{ color: 'white', fontWeight: '600' }}>{viewingQr.number_of_seats}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.7)' }}>
+                                    <span>💰 Paid:</span>
+                                    <span style={{ color: '#38ef7d', fontWeight: '600' }}>₹{(viewingQr.total_amount || 0).toLocaleString('en-IN')}</span>
+                                </div>
+                            </div>
+
+                            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', fontStyle: 'italic' }}>
+                                Scan this QR code with your phone camera at the event entrance
+                            </p>
                         </div>
                     </div>
                 </div>

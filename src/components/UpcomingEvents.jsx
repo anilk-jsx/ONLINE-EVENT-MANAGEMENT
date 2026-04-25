@@ -9,6 +9,8 @@ function UpcomingEvents({ upcomingEvents, registeredEventIds, handleRegisterEven
     const [showEventDetail, setShowEventDetail] = useState(false);
     const [registrationModalEvent, setRegistrationModalEvent] = useState(null);
     const [numberOfSeats, setNumberOfSeats] = useState(1);
+    const [showQrModal, setShowQrModal] = useState(false);
+    const [qrData, setQrData] = useState(null);
 
     const categories = ['All', 'Technology', 'Marketing', 'Education', 'Business', 'Programming'];
 
@@ -286,13 +288,70 @@ function UpcomingEvents({ upcomingEvents, registeredEventIds, handleRegisterEven
                             <SwipeToPay 
                                 amount={registrationModalEvent.price * numberOfSeats}
                                 disabled={false}
-                                onPaymentComplete={() => {
-                                    setTimeout(() => {
-                                        handleRegisterEvent(registrationModalEvent._id, numberOfSeats);
-                                        setRegistrationModalEvent(null);
-                                    }, 1000);
+                                onPaymentComplete={async () => {
+                                    const evt = registrationModalEvent;
+                                    const seats = numberOfSeats;
+                                    setRegistrationModalEvent(null);
+                                    const result = await handleRegisterEvent(evt._id, seats);
+                                    if (result && result.success && result.qr_token) {
+                                        const verifyUrl = `${window.location.origin}/verify/${result.qr_token}`;
+                                        setQrData({
+                                            qrImageUrl: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(verifyUrl)}`,
+                                            eventTitle: evt.title,
+                                            seats: seats,
+                                            amount: evt.price * seats
+                                        });
+                                        setShowQrModal(true);
+                                    }
                                 }}
                             />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* QR Code Success Modal */}
+            {showQrModal && qrData && (
+                <div className="modal-overlay" onClick={() => { setShowQrModal(false); setQrData(null); }}>
+                    <div className="event-detail-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '420px' }}>
+                        <div className="modal-header">
+                            <h2>Registration Successful! 🎉</h2>
+                            <button className="close-btn" onClick={() => { setShowQrModal(false); setQrData(null); }}>×</button>
+                        </div>
+                        <div className="modal-content" style={{ textAlign: 'center', padding: '20px 30px 30px' }}>
+                            <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '20px', fontSize: '0.95rem' }}>
+                                Your ticket for <strong style={{ color: 'white' }}>{qrData.eventTitle}</strong>
+                            </p>
+
+                            <div style={{
+                                display: 'inline-block', padding: '20px',
+                                background: 'white', borderRadius: '16px', marginBottom: '20px'
+                            }}>
+                                <img
+                                    src={qrData.qrImageUrl}
+                                    alt="Event QR Code"
+                                    width="200" height="200"
+                                    style={{ display: 'block' }}
+                                />
+                            </div>
+
+                            <div style={{
+                                background: 'rgba(0,0,0,0.2)', padding: '15px',
+                                borderRadius: '10px', marginBottom: '15px', textAlign: 'left'
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: 'rgba(255,255,255,0.7)' }}>
+                                    <span>🪑 Seats:</span>
+                                    <span style={{ color: 'white', fontWeight: '600' }}>{qrData.seats}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.7)' }}>
+                                    <span>💰 Amount Paid:</span>
+                                    <span style={{ color: '#38ef7d', fontWeight: '600' }}>₹{qrData.amount.toLocaleString('en-IN')}</span>
+                                </div>
+                            </div>
+
+                            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', fontStyle: 'italic' }}>
+                                Scan this QR code with your phone camera at the event entrance
+                            </p>
                         </div>
                     </div>
                 </div>

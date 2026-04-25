@@ -144,6 +144,11 @@ const registrationSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  qr_token: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
   created_at: {
     type: Date,
     default: Date.now
