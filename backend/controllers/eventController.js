@@ -348,3 +348,89 @@ export async function getUpcomingEvents(req, res) {
     });
   }
 }
+
+// ===================== ADMIN ENDPOINTS =====================
+
+// Get all events for admin (includes organizer details, registration counts)
+export async function getAllEventsAdmin(req, res) {
+  try {
+    const events = await Event.find()
+      .populate('organizer_id', 'name email mobile_number')
+      .sort({ created_at: -1 });
+
+    // Attach registration count to each event
+    const eventsWithCounts = await Promise.all(events.map(async (event) => {
+      const registrationCount = await Registration.countDocuments({ event_id: event._id, status: { $ne: 'cancelled' } });
+      return {
+        ...event.toObject(),
+        registered_count: registrationCount
+      };
+    }));
+
+    res.json({
+      success: true,
+      events: eventsWithCounts
+    });
+  } catch (error) {
+    console.error('Admin get all events error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve events',
+      error: error.message
+    });
+  }
+}
+
+// Approve an event
+export async function approveEvent(req, res) {
+  try {
+    const { eventId } = req.params;
+
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+
+    event.status = 'approved';
+    event.updated_at = new Date();
+    await event.save();
+
+    await event.populate('organizer_id', 'name email mobile_number');
+
+    res.json({
+      success: true,
+      message: 'Event approved successfully',
+      event
+    });
+  } catch (error) {
+    console.error('Approve event error:', error);
+    res.status(500).json({ success: false, message: 'Failed to approve event', error: error.message });
+  }
+}
+
+// Reject an event
+export async function rejectEvent(req, res) {
+  try {
+    const { eventId } = req.params;
+
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+
+    event.status = 'rejected';
+    event.updated_at = new Date();
+    await event.save();
+
+    await event.populate('organizer_id', 'name email mobile_number');
+
+    res.json({
+      success: true,
+      message: 'Event rejected successfully',
+      event
+    });
+  } catch (error) {
+    console.error('Reject event error:', error);
+    res.status(500).json({ success: false, message: 'Failed to reject event', error: error.message });
+  }
+}

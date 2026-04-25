@@ -1,6 +1,6 @@
 import express from 'express';
 import { body, param, validationResult } from 'express-validator';
-import { authMiddleware } from '../middleware/authMiddleware.js';
+import { authMiddleware, adminMiddleware } from '../middleware/authMiddleware.js';
 import {
   createEvent,
   getEvents,
@@ -9,7 +9,10 @@ import {
   updateEvent,
   deleteEvent,
   getEventsByOrganizer,
-  getMyEvents
+  getMyEvents,
+  getAllEventsAdmin,
+  approveEvent,
+  rejectEvent
 } from '../controllers/eventController.js';
 
 const router = express.Router();
@@ -80,6 +83,31 @@ router.get('/upcoming', getUpcomingEvents);
 
 // Get my events (protected)
 router.get('/my-events', authMiddleware, getMyEvents);
+
+// ===================== ADMIN ROUTES =====================
+
+// Get all events for admin
+router.get('/admin/all', adminMiddleware, getAllEventsAdmin);
+
+// Approve event
+router.put(
+  '/admin/:eventId/approve',
+  adminMiddleware,
+  param('eventId').isMongoId().withMessage('Invalid event ID'),
+  handleValidationErrors,
+  approveEvent
+);
+
+// Reject event
+router.put(
+  '/admin/:eventId/reject',
+  adminMiddleware,
+  param('eventId').isMongoId().withMessage('Invalid event ID'),
+  handleValidationErrors,
+  rejectEvent
+);
+
+// ===================== PUBLIC/USER ROUTES =====================
 
 // Get event by ID (public)
 router.get(
