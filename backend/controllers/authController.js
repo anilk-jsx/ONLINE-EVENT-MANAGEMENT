@@ -144,3 +144,32 @@ export async function login(req, res) {
     });
   }
 }
+
+export async function getProfile(req, res) {
+  try {
+    const userId = req.user.id;
+
+    // Find user by ID, exclude password
+    const user = await User.findById(userId).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Profile retrieved successfully',
+      user
+    });
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve profile',
+      error: error.message
+    });
+  }
+}

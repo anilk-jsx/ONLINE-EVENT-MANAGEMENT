@@ -254,3 +254,27 @@ export async function getEventsByOrganizer(req, res) {
     });
   }
 }
+
+// Get events created by the logged in user
+export async function getMyEvents(req, res) {
+  try {
+    const userId = req.user.id;
+
+    const events = await Event.find({ organizer_id: userId })
+      .populate('organizer_id', 'name email mobile_number')
+      .sort({ created_at: -1 });
+
+    res.json({
+      success: true,
+      message: 'My events retrieved successfully',
+      events
+    });
+  } catch (error) {
+    console.error('Get my events error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve my events',
+      error: error.message
+    });
+  }
+}

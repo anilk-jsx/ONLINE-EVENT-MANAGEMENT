@@ -7,7 +7,8 @@ import {
   getEventById,
   updateEvent,
   deleteEvent,
-  getEventsByOrganizer
+  getEventsByOrganizer,
+  getMyEvents
 } from '../controllers/eventController.js';
 
 const router = express.Router();
@@ -69,6 +70,9 @@ router.post(
 
 // Get all events (public)
 router.get('/', getEvents);
+
+// Get my events (protected)
+router.get('/my-events', authMiddleware, getMyEvents);
 
 // Get event by ID (public)
 router.get(

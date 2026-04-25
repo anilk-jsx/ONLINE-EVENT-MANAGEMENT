@@ -1,6 +1,7 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import { register, login } from '../controllers/authController.js';
+import { register, login, getProfile } from '../controllers/authController.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -46,5 +47,8 @@ const handleValidationErrors = (req, res, next) => {
 // Routes
 router.post('/register', validateRegistration, handleValidationErrors, register);
 router.post('/login', validateLogin, handleValidationErrors, login);
+
+// Protected routes
+router.get('/profile', authMiddleware, getProfile);
 
 export default router;
