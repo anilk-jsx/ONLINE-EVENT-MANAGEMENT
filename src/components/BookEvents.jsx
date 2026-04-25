@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-function BookEvents({ bookedEvents, setShowBookingForm, handleEditEvent }) {
+function BookEvents({ bookedEvents, setShowBookingForm, handleEditEvent, handleDeleteEvent, fetchEventMembers }) {
     const [activeMenu, setActiveMenu] = useState(null);
     const [editingEvent, setEditingEvent] = useState(null);
     const [editForm, setEditForm] = useState({});
+    const [viewingMembers, setViewingMembers] = useState(null);
+    const [members, setMembers] = useState([]);
+    const [loadingMembers, setLoadingMembers] = useState(false);
     const menuRef = useRef(null);
 
     const formatDate = (dateString) => {
@@ -92,8 +95,22 @@ function BookEvents({ bookedEvents, setShowBookingForm, handleEditEvent }) {
                                             <button className="dropdown-item" onClick={() => handleOpenEdit(event)}>
                                                 ✏️ Edit
                                             </button>
-                                            <button className="dropdown-item delete-item" disabled>
+                                            <button className="dropdown-item delete-item" 
+                                                onClick={() => { handleDeleteEvent(event._id); setActiveMenu(null); }}
+                                                disabled={event.status === 'approved'}
+                                                title={event.status === 'approved' ? 'Cannot delete an approved event' : 'Delete this event'}
+                                            >
                                                 🗑️ Delete
+                                            </button>
+                                            <button className="dropdown-item" onClick={async () => {
+                                                setActiveMenu(null);
+                                                setViewingMembers(event);
+                                                setLoadingMembers(true);
+                                                const result = await fetchEventMembers(event._id);
+                                                setMembers(result);
+                                                setLoadingMembers(false);
+                                            }}>
+                                                👥 View Members
                                             </button>
                                         </div>
                                     )}
@@ -290,6 +307,68 @@ function BookEvents({ bookedEvents, setShowBookingForm, handleEditEvent }) {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* View Members Modal */}
+            {viewingMembers && (
+                <div className="modal-overlay" onClick={() => { setViewingMembers(null); setMembers([]); }}>
+                    <div className="booking-form-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+                        <div className="modal-header">
+                            <h3>Registered Members — {viewingMembers.title}</h3>
+                            <button className="close-btn" onClick={() => { setViewingMembers(null); setMembers([]); }}>×</button>
+                        </div>
+                        <div style={{ padding: '0 25px 25px 25px' }}>
+                            {loadingMembers ? (
+                                <p style={{ color: 'rgba(255,255,255,0.7)', textAlign: 'center', padding: '30px 0' }}>Loading members...</p>
+                            ) : members.length > 0 ? (
+                                <div className="members-list">
+                                    <div style={{
+                                        display: 'grid', gridTemplateColumns: '40px 1fr 1fr 80px',
+                                        gap: '10px', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.15)',
+                                        color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: '700',
+                                        textTransform: 'uppercase', letterSpacing: '1px'
+                                    }}>
+                                        <span>#</span>
+                                        <span>Name</span>
+                                        <span>Email</span>
+                                        <span>Seats</span>
+                                    </div>
+                                    {members.map((member, index) => (
+                                        <div key={member._id} style={{
+                                            display: 'grid', gridTemplateColumns: '40px 1fr 1fr 80px',
+                                            gap: '10px', padding: '12px 0',
+                                            borderBottom: '1px solid rgba(255,255,255,0.05)',
+                                            color: 'rgba(255,255,255,0.85)', fontSize: '0.9rem',
+                                            alignItems: 'center'
+                                        }}>
+                                            <span style={{ color: 'rgba(255,255,255,0.4)' }}>{index + 1}</span>
+                                            <span style={{ fontWeight: '500' }}>{member.user_id?.name || 'Unknown'}</span>
+                                            <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem' }}>{member.user_id?.email || '—'}</span>
+                                            <span style={{ 
+                                                background: 'rgba(102,126,234,0.2)', color: '#667eea',
+                                                padding: '3px 10px', borderRadius: '12px', textAlign: 'center',
+                                                fontWeight: '600', fontSize: '0.8rem'
+                                            }}>{member.number_of_seats || 1}</span>
+                                        </div>
+                                    ))}
+                                    <div style={{
+                                        display: 'flex', justifyContent: 'space-between',
+                                        padding: '15px 0 5px', marginTop: '10px',
+                                        borderTop: '1px solid rgba(255,255,255,0.15)',
+                                        color: 'white', fontWeight: '600'
+                                    }}>
+                                        <span>Total Members: {members.length}</span>
+                                        <span>Total Seats: {members.reduce((sum, m) => sum + (m.number_of_seats || 1), 0)}</span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <p style={{ color: 'rgba(255,255,255,0.5)', textAlign: 'center', padding: '30px 0', fontStyle: 'italic' }}>
+                                    No members have registered for this event yet.
+                                </p>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

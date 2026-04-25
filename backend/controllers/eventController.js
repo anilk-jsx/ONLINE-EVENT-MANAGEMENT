@@ -228,6 +228,14 @@ export async function deleteEvent(req, res) {
       });
     }
 
+    // Block deletion of approved events
+    if (event.status === 'approved') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot delete an approved event. Contact admin for assistance.'
+      });
+    }
+
     await Event.findByIdAndDelete(eventId);
 
     // Also delete associated registrations

@@ -191,6 +191,49 @@ function Dashboard() {
         }
     };
 
+    const handleDeleteEvent = async (eventId) => {
+        if (!window.confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
+            return;
+        }
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch(`http://localhost:5001/api/events/${eventId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            if (data.success) {
+                fetchDashboardData();
+                alert('Event deleted successfully!');
+            } else {
+                alert(data.message || 'Failed to delete event');
+            }
+        } catch (error) {
+            console.error('Error deleting event:', error);
+            alert('Failed to delete event');
+        }
+    };
+
+    const fetchEventMembers = async (eventId) => {
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch(`http://localhost:5001/api/registrations/event/${eventId}/registrations`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            if (data.success) {
+                return data.registrations || [];
+            } else {
+                alert(data.message || 'Failed to fetch members');
+                return [];
+            }
+        } catch (error) {
+            console.error('Error fetching event members:', error);
+            alert('Failed to fetch members');
+            return [];
+        }
+    };
+
     // Sidebar component with routing
     const SidebarWithRouter = () => {
         const location = useLocation();
@@ -275,6 +318,8 @@ function Dashboard() {
                                 bookedEvents={bookedEvents}
                                 setShowBookingForm={setShowBookingForm}
                                 handleEditEvent={handleEditEvent}
+                                handleDeleteEvent={handleDeleteEvent}
+                                fetchEventMembers={fetchEventMembers}
                             />
                         } 
                     />
