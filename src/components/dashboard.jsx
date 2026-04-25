@@ -110,13 +110,17 @@ function Dashboard() {
         }
     };
 
-    const handleRegisterEvent = async (eventId) => {
+    const handleRegisterEvent = async (eventId, numberOfSeats = 1) => {
         if (!registeredEventIds.includes(eventId)) {
             try {
                 const token = localStorage.getItem('authToken');
                 const response = await fetch(`http://localhost:5001/api/registrations/event/${eventId}/register`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ number_of_seats: numberOfSeats })
                 });
                 const data = await response.json();
                 if (data.success) {

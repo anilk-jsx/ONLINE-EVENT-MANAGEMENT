@@ -1,9 +1,11 @@
 import { Registration, Event, User } from '../config/database.js';
+import mongoose from 'mongoose';
 
 // Register user for an event
 export async function registerForEvent(req, res) {
   try {
     const { eventId } = req.params;
+    const { number_of_seats = 1 } = req.body;
     const userId = req.user.id;
 
     // Check if event exists
@@ -37,19 +39,29 @@ export async function registerForEvent(req, res) {
     }
 
     // Check available seats
-    const registrationCount = await Registration.countDocuments({ event_id: eventId });
-    if (registrationCount >= event.available_seats) {
+    const aggregations = await Registration.aggregate([
+      { $match: { event_id: new mongoose.Types.ObjectId(eventId), status: { $ne: 'cancelled' } } },
+      { $group: { _id: null, totalSeats: { $sum: '$number_of_seats' } } }
+    ]);
+    const currentlyBooked = aggregations.length > 0 ? aggregations[0].totalSeats : 0;
+
+    if (currentlyBooked + Number(number_of_seats) > event.available_seats) {
       return res.status(400).json({
         success: false,
-        message: 'Event is full, no available seats'
+        message: `Event is full or not enough seats available. Remaining seats: ${event.available_seats - currentlyBooked}`
       });
     }
+
+    // Calculate total amount
+    const total_amount = event.price * Number(number_of_seats);
 
     // Create registration
     const registration = new Registration({
       user_id: userId,
       event_id: eventId,
-      status: 'registered'
+      status: 'registered',
+      number_of_seats: Number(number_of_seats),
+      total_amount
     });
 
     await registration.save();
@@ -123,11 +135,16 @@ export async function getEventRegistrations(req, res) {
       .populate('user_id', 'name email mobile_number')
       .sort({ created_at: -1 });
 
+    const total_booked = registrations
+      .filter(r => r.status !== 'cancelled')
+      .reduce((sum, r) => sum + r.number_of_seats, 0);
+
     res.json({
       success: true,
       message: 'Event registrations retrieved successfully',
       total_registrations: registrations.length,
-      available_seats: event.available_seats - registrations.length,
+      total_booked_seats: total_booked,
+      available_seats: event.available_seats - total_booked,
       registrations
     });
   } catch (error) {
@@ -204,11 +221,10 @@ export async function getEventStatistics(req, res) {
       });
     }
 
-    const totalRegistrations = await Registration.countDocuments({ event_id: eventId });
-    const activeRegistrations = await Registration.countDocuments({
-      event_id: eventId,
-      status: 'registered'
-    });
+    const activeRegs = await Registration.find({ event_id: eventId, status: 'registered' });
+    const activeRegistrations = activeRegs.length;
+    const totalBookedSeats = activeRegs.reduce((sum, r) => sum + r.number_of_seats, 0);
+    
     const cancelledRegistrations = await Registration.countDocuments({
       event_id: eventId,
       status: 'cancelled'
@@ -219,12 +235,13 @@ export async function getEventStatistics(req, res) {
       message: 'Event statistics retrieved successfully',
       statistics: {
         event_id: eventId,
-        total_registrations: totalRegistrations,
+        total_registrations: activeRegistrations + cancelledRegistrations,
         active_registrations: activeRegistrations,
         cancelled_registrations: cancelledRegistrations,
-        available_seats: event.available_seats - activeRegistrations,
+        booked_seats: totalBookedSeats,
+        available_seats: event.available_seats - totalBookedSeats,
         total_seats: event.available_seats,
-        occupancy_rate: ((totalRegistrations / event.available_seats) * 100).toFixed(2) + '%'
+        occupancy_rate: ((totalBookedSeats / event.available_seats) * 100).toFixed(2) + '%'
       }
     });
   } catch (error) {

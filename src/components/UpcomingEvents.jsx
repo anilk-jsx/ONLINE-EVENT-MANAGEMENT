@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import SwipeToPay from './SwipeToPay';
 
 function UpcomingEvents({ upcomingEvents, registeredEventIds, handleRegisterEvent }) {
     const [searchTerm, setSearchTerm] = useState('');
@@ -6,6 +7,8 @@ function UpcomingEvents({ upcomingEvents, registeredEventIds, handleRegisterEven
     const [priceRange, setPriceRange] = useState([0, 50000]);
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [showEventDetail, setShowEventDetail] = useState(false);
+    const [registrationModalEvent, setRegistrationModalEvent] = useState(null);
+    const [numberOfSeats, setNumberOfSeats] = useState(1);
 
     const categories = ['All', 'Technology', 'Marketing', 'Education', 'Business', 'Programming'];
 
@@ -139,7 +142,8 @@ function UpcomingEvents({ upcomingEvents, registeredEventIds, handleRegisterEven
                                     }`}
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        handleRegisterEvent(event._id);
+                                        setRegistrationModalEvent(event);
+                                        setNumberOfSeats(1);
                                     }}
                                     disabled={registeredEventIds.includes(event._id) || event.available_seats_remaining === 0}
                                 >
@@ -220,7 +224,8 @@ function UpcomingEvents({ upcomingEvents, registeredEventIds, handleRegisterEven
                                     registeredEventIds.includes(selectedEvent._id) ? 'registered' : ''
                                 }`}
                                 onClick={() => {
-                                    handleRegisterEvent(selectedEvent._id);
+                                    setRegistrationModalEvent(selectedEvent);
+                                    setNumberOfSeats(1);
                                     setShowEventDetail(false);
                                 }}
                                 disabled={registeredEventIds.includes(selectedEvent._id) || selectedEvent.available_seats_remaining === 0}
@@ -232,6 +237,62 @@ function UpcomingEvents({ upcomingEvents, registeredEventIds, handleRegisterEven
                                     : 'Register Now'
                                 }
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Registration & Payment Modal */}
+            {registrationModalEvent && (
+                <div className="modal-overlay" onClick={() => setRegistrationModalEvent(null)}>
+                    <div className="event-detail-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2>Register for {registrationModalEvent.title}</h2>
+                            <button className="close-btn" onClick={() => setRegistrationModalEvent(null)}>×</button>
+                        </div>
+                        <div className="modal-content">
+                            <div className="form-group" style={{ marginBottom: '20px' }}>
+                                <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255, 255, 255, 0.8)' }}>
+                                    Number of Seats (Available: {registrationModalEvent.available_seats_remaining})
+                                </label>
+                                <input 
+                                    type="number" 
+                                    min="1" 
+                                    max={registrationModalEvent.available_seats_remaining} 
+                                    value={numberOfSeats} 
+                                    onChange={(e) => {
+                                        const val = parseInt(e.target.value) || 1;
+                                        setNumberOfSeats(Math.min(Math.max(1, val), registrationModalEvent.available_seats_remaining));
+                                    }}
+                                    style={{
+                                        width: '100%', padding: '12px', borderRadius: '8px', 
+                                        border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)',
+                                        color: 'white', fontSize: '1rem'
+                                    }}
+                                />
+                            </div>
+                            
+                            <div className="summary-section" style={{ background: 'rgba(0,0,0,0.2)', padding: '15px', borderRadius: '10px', marginBottom: '20px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', color: 'rgba(255,255,255,0.8)' }}>
+                                    <span>Price per seat:</span>
+                                    <span>₹{registrationModalEvent.price.toLocaleString('en-IN')}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '10px', fontWeight: 'bold', fontSize: '1.2rem', color: 'white' }}>
+                                    <span>Total Amount:</span>
+                                    <span style={{ color: '#ff4d6d' }}>₹{(registrationModalEvent.price * numberOfSeats).toLocaleString('en-IN')}</span>
+                                </div>
+                            </div>
+
+                            <SwipeToPay 
+                                amount={registrationModalEvent.price * numberOfSeats}
+                                disabled={false}
+                                onPaymentComplete={() => {
+                                    setTimeout(() => {
+                                        handleRegisterEvent(registrationModalEvent._id, numberOfSeats);
+                                        setRegistrationModalEvent(null);
+                                    }, 1000);
+                                }}
+                            />
                         </div>
                     </div>
                 </div>

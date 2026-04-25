@@ -295,14 +295,17 @@ export async function getUpcomingEvents(req, res) {
     .populate('organizer_id', 'name email')
     .sort({ date: 1, time: 1 });
 
-    // Calculate available seats for each event
+    // Filter out events that are full and calculate remaining seats
     const eventsWithSeats = await Promise.all(events.map(async (event) => {
-      const registrationCount = await Registration.countDocuments({ event_id: event._id, status: { $ne: 'cancelled' } });
-      const available_seats_remaining = event.available_seats - registrationCount;
+      const aggregations = await Registration.aggregate([
+        { $match: { event_id: event._id, status: { $ne: 'cancelled' } } },
+        { $group: { _id: null, totalSeats: { $sum: '$number_of_seats' } } }
+      ]);
+      const bookedSeats = aggregations.length > 0 ? aggregations[0].totalSeats : 0;
+      const availableSeats = event.available_seats - bookedSeats;
       return {
         ...event.toObject(),
-        registered_count: registrationCount,
-        available_seats_remaining
+        available_seats_remaining: availableSeats
       };
     }));
 

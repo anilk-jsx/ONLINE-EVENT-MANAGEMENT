@@ -446,14 +446,14 @@ body {
   align-items: center;
 }
 
-.event-card {
+.events-section .event-card {
   position: relative;
   border-radius: 16px;
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.event-card:hover {
+.events-section .event-card:hover {
   transform: translateY(-10px);
   box-shadow: 0 20px 40px rgba(255, 77, 109, 0.3);
 }
@@ -472,7 +472,7 @@ body {
   transition: transform 0.3s ease;
 }
 
-.event-card:hover .event-image img {
+.events-section .event-card:hover .event-image img {
   transform: scale(1.05);
 }
 
@@ -504,7 +504,7 @@ body {
   transform: translateY(0);
 }
 
-.event-card:hover .event-details {
+.events-section .event-card:hover .event-details {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;

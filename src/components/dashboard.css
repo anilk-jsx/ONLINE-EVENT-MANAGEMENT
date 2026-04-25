@@ -1368,13 +1368,9 @@
 /* Event Card Clickable */
 .event-card {
   cursor: pointer;
-  transition: all 0.3s ease;
 }
 
-.event-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 15px 40px rgba(255, 77, 109, 0.2);
-}
+
 
 /* Admin Dashboard Container */
 .admin-dashboard-container {

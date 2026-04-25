@@ -136,6 +136,14 @@ const registrationSchema = new mongoose.Schema({
     enum: ['registered', 'completed', 'cancelled'],
     default: 'registered'
   },
+  number_of_seats: {
+    type: Number,
+    default: 1
+  },
+  total_amount: {
+    type: Number,
+    default: 0
+  },
   created_at: {
     type: Date,
     default: Date.now
